@@ -12,10 +12,11 @@ use log::error;
 use uuid::Uuid;
 
 use crate::protocol::{
-    Encodable, Decodable, MapEncodable, MapDecodable, Encoder, Decoder, EncodeError, DecodeError, Message, HeaderVersion, VersionRange,
-    types, write_unknown_tagged_fields, compute_unknown_tagged_fields_size, StrBytes, buf::{ByteBuf, ByteBufMut}, Builder
+    buf::{ByteBuf, ByteBufMut},
+    compute_unknown_tagged_fields_size, types, write_unknown_tagged_fields, Builder, Decodable,
+    DecodeError, Decoder, Encodable, EncodeError, Encoder, HeaderVersion, MapDecodable,
+    MapEncodable, Message, StrBytes, VersionRange,
 };
-
 
 /// Valid versions: 0
 #[non_exhaustive]
@@ -23,23 +24,27 @@ use crate::protocol::{
 #[builder(default)]
 pub struct OffsetDeleteResponsePartition {
     /// The error code, or 0 if there was no error.
-    /// 
+    ///
     /// Supported API versions: 0
     pub error_code: i16,
-
 }
 
 impl Builder for OffsetDeleteResponsePartition {
     type Builder = OffsetDeleteResponsePartitionBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         OffsetDeleteResponsePartitionBuilder::default()
     }
 }
 
 impl MapEncodable for OffsetDeleteResponsePartition {
     type Key = i32;
-    fn encode<B: ByteBufMut>(&self, key: &Self::Key, buf: &mut B, version: i16) -> Result<(), EncodeError> {
+    fn encode<B: ByteBufMut>(
+        &self,
+        key: &Self::Key,
+        buf: &mut B,
+        version: i16,
+    ) -> Result<(), EncodeError> {
         types::Int32.encode(buf, key)?;
         types::Int16.encode(buf, &self.error_code)?;
 
@@ -59,17 +64,13 @@ impl MapDecodable for OffsetDeleteResponsePartition {
     fn decode<B: ByteBuf>(buf: &mut B, version: i16) -> Result<(Self::Key, Self), DecodeError> {
         let key_field = types::Int32.decode(buf)?;
         let error_code = types::Int16.decode(buf)?;
-        Ok((key_field, Self {
-            error_code,
-        }))
+        Ok((key_field, Self { error_code }))
     }
 }
 
 impl Default for OffsetDeleteResponsePartition {
     fn default() -> Self {
-        Self {
-            error_code: 0,
-        }
+        Self { error_code: 0 }
     }
 }
 
@@ -83,23 +84,27 @@ impl Message for OffsetDeleteResponsePartition {
 #[builder(default)]
 pub struct OffsetDeleteResponseTopic {
     /// The responses for each partition in the topic.
-    /// 
+    ///
     /// Supported API versions: 0
     pub partitions: indexmap::IndexMap<i32, OffsetDeleteResponsePartition>,
-
 }
 
 impl Builder for OffsetDeleteResponseTopic {
     type Builder = OffsetDeleteResponseTopicBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         OffsetDeleteResponseTopicBuilder::default()
     }
 }
 
 impl MapEncodable for OffsetDeleteResponseTopic {
     type Key = super::TopicName;
-    fn encode<B: ByteBufMut>(&self, key: &Self::Key, buf: &mut B, version: i16) -> Result<(), EncodeError> {
+    fn encode<B: ByteBufMut>(
+        &self,
+        key: &Self::Key,
+        buf: &mut B,
+        version: i16,
+    ) -> Result<(), EncodeError> {
         types::String.encode(buf, key)?;
         types::Array(types::Struct { version }).encode(buf, &self.partitions)?;
 
@@ -119,9 +124,7 @@ impl MapDecodable for OffsetDeleteResponseTopic {
     fn decode<B: ByteBuf>(buf: &mut B, version: i16) -> Result<(Self::Key, Self), DecodeError> {
         let key_field = types::String.decode(buf)?;
         let partitions = types::Array(types::Struct { version }).decode(buf)?;
-        Ok((key_field, Self {
-            partitions,
-        }))
+        Ok((key_field, Self { partitions }))
     }
 }
 
@@ -143,26 +146,25 @@ impl Message for OffsetDeleteResponseTopic {
 #[builder(default)]
 pub struct OffsetDeleteResponse {
     /// The top-level error code, or 0 if there was no error.
-    /// 
+    ///
     /// Supported API versions: 0
     pub error_code: i16,
 
     /// The duration in milliseconds for which the request was throttled due to a quota violation, or zero if the request did not violate any quota.
-    /// 
+    ///
     /// Supported API versions: 0
     pub throttle_time_ms: i32,
 
     /// The responses for each topic.
-    /// 
+    ///
     /// Supported API versions: 0
     pub topics: indexmap::IndexMap<super::TopicName, OffsetDeleteResponseTopic>,
-
 }
 
 impl Builder for OffsetDeleteResponse {
     type Builder = OffsetDeleteResponseBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         OffsetDeleteResponseBuilder::default()
     }
 }
@@ -217,4 +219,3 @@ impl HeaderVersion for OffsetDeleteResponse {
         0
     }
 }
-

@@ -8,7 +8,7 @@ use flate2::Compression;
 use crate::protocol::buf::{ByteBuf, ByteBufMut};
 use crate::protocol::{DecodeError, EncodeError};
 
-use super::{Compressor, Decompressor, compression_err, decompression_err};
+use super::{compression_err, decompression_err, Compressor, Decompressor};
 
 /// Gzip compression algorithm. See [Kafka's broker configuration](https://kafka.apache.org/documentation/#brokerconfigs_compression.type)
 /// for more information.

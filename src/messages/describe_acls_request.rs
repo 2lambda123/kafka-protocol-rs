@@ -12,10 +12,11 @@ use log::error;
 use uuid::Uuid;
 
 use crate::protocol::{
-    Encodable, Decodable, MapEncodable, MapDecodable, Encoder, Decoder, EncodeError, DecodeError, Message, HeaderVersion, VersionRange,
-    types, write_unknown_tagged_fields, compute_unknown_tagged_fields_size, StrBytes, buf::{ByteBuf, ByteBufMut}, Builder
+    buf::{ByteBuf, ByteBufMut},
+    compute_unknown_tagged_fields_size, types, write_unknown_tagged_fields, Builder, Decodable,
+    DecodeError, Decoder, Encodable, EncodeError, Encoder, HeaderVersion, MapDecodable,
+    MapEncodable, Message, StrBytes, VersionRange,
 };
-
 
 /// Valid versions: 0-3
 #[non_exhaustive]
@@ -23,37 +24,37 @@ use crate::protocol::{
 #[builder(default)]
 pub struct DescribeAclsRequest {
     /// The resource type.
-    /// 
+    ///
     /// Supported API versions: 0-3
     pub resource_type_filter: i8,
 
     /// The resource name, or null to match any resource name.
-    /// 
+    ///
     /// Supported API versions: 0-3
     pub resource_name_filter: Option<StrBytes>,
 
     /// The resource pattern to match.
-    /// 
+    ///
     /// Supported API versions: 1-3
     pub pattern_type_filter: i8,
 
     /// The principal to match, or null to match any principal.
-    /// 
+    ///
     /// Supported API versions: 0-3
     pub principal_filter: Option<StrBytes>,
 
     /// The host to match, or null to match any host.
-    /// 
+    ///
     /// Supported API versions: 0-3
     pub host_filter: Option<StrBytes>,
 
     /// The operation to match.
-    /// 
+    ///
     /// Supported API versions: 0-3
     pub operation: i8,
 
     /// The permission type to match.
-    /// 
+    ///
     /// Supported API versions: 0-3
     pub permission_type: i8,
 
@@ -64,7 +65,7 @@ pub struct DescribeAclsRequest {
 impl Builder for DescribeAclsRequest {
     type Builder = DescribeAclsRequestBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         DescribeAclsRequestBuilder::default()
     }
 }
@@ -81,7 +82,7 @@ impl Encodable for DescribeAclsRequest {
             types::Int8.encode(buf, &self.pattern_type_filter)?;
         } else {
             if self.pattern_type_filter != 3 {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 2 {
@@ -99,7 +100,10 @@ impl Encodable for DescribeAclsRequest {
         if version >= 2 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -120,7 +124,7 @@ impl Encodable for DescribeAclsRequest {
             total_size += types::Int8.compute_size(&self.pattern_type_filter)?;
         } else {
             if self.pattern_type_filter != 3 {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 2 {
@@ -138,7 +142,10 @@ impl Encodable for DescribeAclsRequest {
         if version >= 2 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -226,4 +233,3 @@ impl HeaderVersion for DescribeAclsRequest {
         }
     }
 }
-

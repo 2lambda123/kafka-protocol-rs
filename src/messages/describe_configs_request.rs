@@ -12,10 +12,11 @@ use log::error;
 use uuid::Uuid;
 
 use crate::protocol::{
-    Encodable, Decodable, MapEncodable, MapDecodable, Encoder, Decoder, EncodeError, DecodeError, Message, HeaderVersion, VersionRange,
-    types, write_unknown_tagged_fields, compute_unknown_tagged_fields_size, StrBytes, buf::{ByteBuf, ByteBufMut}, Builder
+    buf::{ByteBuf, ByteBufMut},
+    compute_unknown_tagged_fields_size, types, write_unknown_tagged_fields, Builder, Decodable,
+    DecodeError, Decoder, Encodable, EncodeError, Encoder, HeaderVersion, MapDecodable,
+    MapEncodable, Message, StrBytes, VersionRange,
 };
-
 
 /// Valid versions: 0-4
 #[non_exhaustive]
@@ -23,17 +24,17 @@ use crate::protocol::{
 #[builder(default)]
 pub struct DescribeConfigsResource {
     /// The resource type.
-    /// 
+    ///
     /// Supported API versions: 0-4
     pub resource_type: i8,
 
     /// The resource name.
-    /// 
+    ///
     /// Supported API versions: 0-4
     pub resource_name: StrBytes,
 
     /// The configuration keys to list, or null to list all configuration keys.
-    /// 
+    ///
     /// Supported API versions: 0-4
     pub configuration_keys: Option<Vec<StrBytes>>,
 
@@ -44,7 +45,7 @@ pub struct DescribeConfigsResource {
 impl Builder for DescribeConfigsResource {
     type Builder = DescribeConfigsResourceBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         DescribeConfigsResourceBuilder::default()
     }
 }
@@ -65,7 +66,10 @@ impl Encodable for DescribeConfigsResource {
         if version >= 4 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -83,14 +87,18 @@ impl Encodable for DescribeConfigsResource {
             total_size += types::String.compute_size(&self.resource_name)?;
         }
         if version >= 4 {
-            total_size += types::CompactArray(types::CompactString).compute_size(&self.configuration_keys)?;
+            total_size +=
+                types::CompactArray(types::CompactString).compute_size(&self.configuration_keys)?;
         } else {
             total_size += types::Array(types::String).compute_size(&self.configuration_keys)?;
         }
         if version >= 4 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -155,17 +163,17 @@ impl Message for DescribeConfigsResource {
 #[builder(default)]
 pub struct DescribeConfigsRequest {
     /// The resources whose configurations we want to describe.
-    /// 
+    ///
     /// Supported API versions: 0-4
     pub resources: Vec<DescribeConfigsResource>,
 
     /// True if we should include all synonyms.
-    /// 
+    ///
     /// Supported API versions: 1-4
     pub include_synonyms: bool,
 
     /// True if we should include configuration documentation.
-    /// 
+    ///
     /// Supported API versions: 3-4
     pub include_documentation: bool,
 
@@ -176,7 +184,7 @@ pub struct DescribeConfigsRequest {
 impl Builder for DescribeConfigsRequest {
     type Builder = DescribeConfigsRequestBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         DescribeConfigsRequestBuilder::default()
     }
 }
@@ -192,20 +200,23 @@ impl Encodable for DescribeConfigsRequest {
             types::Boolean.encode(buf, &self.include_synonyms)?;
         } else {
             if self.include_synonyms {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 3 {
             types::Boolean.encode(buf, &self.include_documentation)?;
         } else {
             if self.include_documentation {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 4 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -217,7 +228,8 @@ impl Encodable for DescribeConfigsRequest {
     fn compute_size(&self, version: i16) -> Result<usize, EncodeError> {
         let mut total_size = 0;
         if version >= 4 {
-            total_size += types::CompactArray(types::Struct { version }).compute_size(&self.resources)?;
+            total_size +=
+                types::CompactArray(types::Struct { version }).compute_size(&self.resources)?;
         } else {
             total_size += types::Array(types::Struct { version }).compute_size(&self.resources)?;
         }
@@ -225,20 +237,23 @@ impl Encodable for DescribeConfigsRequest {
             total_size += types::Boolean.compute_size(&self.include_synonyms)?;
         } else {
             if self.include_synonyms {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 3 {
             total_size += types::Boolean.compute_size(&self.include_documentation)?;
         } else {
             if self.include_documentation {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 4 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -310,4 +325,3 @@ impl HeaderVersion for DescribeConfigsRequest {
         }
     }
 }
-

@@ -12,10 +12,11 @@ use log::error;
 use uuid::Uuid;
 
 use crate::protocol::{
-    Encodable, Decodable, MapEncodable, MapDecodable, Encoder, Decoder, EncodeError, DecodeError, Message, HeaderVersion, VersionRange,
-    types, write_unknown_tagged_fields, compute_unknown_tagged_fields_size, StrBytes, buf::{ByteBuf, ByteBufMut}, Builder
+    buf::{ByteBuf, ByteBufMut},
+    compute_unknown_tagged_fields_size, types, write_unknown_tagged_fields, Builder, Decodable,
+    DecodeError, Decoder, Encodable, EncodeError, Encoder, HeaderVersion, MapDecodable,
+    MapEncodable, Message, StrBytes, VersionRange,
 };
-
 
 /// Valid versions: 0-3
 #[non_exhaustive]
@@ -23,12 +24,12 @@ use crate::protocol::{
 #[builder(default)]
 pub struct RemainingPartition {
     /// The name of the topic.
-    /// 
+    ///
     /// Supported API versions: 0-3
     pub topic_name: super::TopicName,
 
     /// The index of the partition.
-    /// 
+    ///
     /// Supported API versions: 0-3
     pub partition_index: i32,
 
@@ -39,7 +40,7 @@ pub struct RemainingPartition {
 impl Builder for RemainingPartition {
     type Builder = RemainingPartitionBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         RemainingPartitionBuilder::default()
     }
 }
@@ -55,7 +56,10 @@ impl Encodable for RemainingPartition {
         if version >= 3 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -75,7 +79,10 @@ impl Encodable for RemainingPartition {
         if version >= 3 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -133,12 +140,12 @@ impl Message for RemainingPartition {
 #[builder(default)]
 pub struct ControlledShutdownResponse {
     /// The top-level error code.
-    /// 
+    ///
     /// Supported API versions: 0-3
     pub error_code: i16,
 
     /// The partitions that the broker still leads.
-    /// 
+    ///
     /// Supported API versions: 0-3
     pub remaining_partitions: Vec<RemainingPartition>,
 
@@ -149,7 +156,7 @@ pub struct ControlledShutdownResponse {
 impl Builder for ControlledShutdownResponse {
     type Builder = ControlledShutdownResponseBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         ControlledShutdownResponseBuilder::default()
     }
 }
@@ -158,14 +165,18 @@ impl Encodable for ControlledShutdownResponse {
     fn encode<B: ByteBufMut>(&self, buf: &mut B, version: i16) -> Result<(), EncodeError> {
         types::Int16.encode(buf, &self.error_code)?;
         if version >= 3 {
-            types::CompactArray(types::Struct { version }).encode(buf, &self.remaining_partitions)?;
+            types::CompactArray(types::Struct { version })
+                .encode(buf, &self.remaining_partitions)?;
         } else {
             types::Array(types::Struct { version }).encode(buf, &self.remaining_partitions)?;
         }
         if version >= 3 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -178,14 +189,19 @@ impl Encodable for ControlledShutdownResponse {
         let mut total_size = 0;
         total_size += types::Int16.compute_size(&self.error_code)?;
         if version >= 3 {
-            total_size += types::CompactArray(types::Struct { version }).compute_size(&self.remaining_partitions)?;
+            total_size += types::CompactArray(types::Struct { version })
+                .compute_size(&self.remaining_partitions)?;
         } else {
-            total_size += types::Array(types::Struct { version }).compute_size(&self.remaining_partitions)?;
+            total_size +=
+                types::Array(types::Struct { version }).compute_size(&self.remaining_partitions)?;
         }
         if version >= 3 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -246,4 +262,3 @@ impl HeaderVersion for ControlledShutdownResponse {
         }
     }
 }
-

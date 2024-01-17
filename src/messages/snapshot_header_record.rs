@@ -12,10 +12,11 @@ use log::error;
 use uuid::Uuid;
 
 use crate::protocol::{
-    Encodable, Decodable, MapEncodable, MapDecodable, Encoder, Decoder, EncodeError, DecodeError, Message, HeaderVersion, VersionRange,
-    types, write_unknown_tagged_fields, compute_unknown_tagged_fields_size, StrBytes, buf::{ByteBuf, ByteBufMut}, Builder
+    buf::{ByteBuf, ByteBufMut},
+    compute_unknown_tagged_fields_size, types, write_unknown_tagged_fields, Builder, Decodable,
+    DecodeError, Decoder, Encodable, EncodeError, Encoder, HeaderVersion, MapDecodable,
+    MapEncodable, Message, StrBytes, VersionRange,
 };
-
 
 /// Valid versions: 0
 #[non_exhaustive]
@@ -23,12 +24,12 @@ use crate::protocol::{
 #[builder(default)]
 pub struct SnapshotHeaderRecord {
     /// The version of the snapshot header record
-    /// 
+    ///
     /// Supported API versions: 0
     pub version: i16,
 
     /// The append time of the last record from the log contained in this snapshot
-    /// 
+    ///
     /// Supported API versions: 0
     pub last_contained_log_timestamp: i64,
 
@@ -39,7 +40,7 @@ pub struct SnapshotHeaderRecord {
 impl Builder for SnapshotHeaderRecord {
     type Builder = SnapshotHeaderRecordBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         SnapshotHeaderRecordBuilder::default()
     }
 }
@@ -50,7 +51,10 @@ impl Encodable for SnapshotHeaderRecord {
         types::Int64.encode(buf, &self.last_contained_log_timestamp)?;
         let num_tagged_fields = self.unknown_tagged_fields.len();
         if num_tagged_fields > std::u32::MAX as usize {
-            error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+            error!(
+                "Too many tagged fields to encode ({} fields)",
+                num_tagged_fields
+            );
             return Err(EncodeError);
         }
         types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -64,7 +68,10 @@ impl Encodable for SnapshotHeaderRecord {
         total_size += types::Int64.compute_size(&self.last_contained_log_timestamp)?;
         let num_tagged_fields = self.unknown_tagged_fields.len();
         if num_tagged_fields > std::u32::MAX as usize {
-            error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+            error!(
+                "Too many tagged fields to encode ({} fields)",
+                num_tagged_fields
+            );
             return Err(EncodeError);
         }
         total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -108,4 +115,3 @@ impl Default for SnapshotHeaderRecord {
 impl Message for SnapshotHeaderRecord {
     const VERSIONS: VersionRange = VersionRange { min: 0, max: 0 };
 }
-

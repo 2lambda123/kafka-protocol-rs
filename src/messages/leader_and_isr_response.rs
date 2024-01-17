@@ -12,10 +12,11 @@ use log::error;
 use uuid::Uuid;
 
 use crate::protocol::{
-    Encodable, Decodable, MapEncodable, MapDecodable, Encoder, Decoder, EncodeError, DecodeError, Message, HeaderVersion, VersionRange,
-    types, write_unknown_tagged_fields, compute_unknown_tagged_fields_size, StrBytes, buf::{ByteBuf, ByteBufMut}, Builder
+    buf::{ByteBuf, ByteBufMut},
+    compute_unknown_tagged_fields_size, types, write_unknown_tagged_fields, Builder, Decodable,
+    DecodeError, Decoder, Encodable, EncodeError, Encoder, HeaderVersion, MapDecodable,
+    MapEncodable, Message, StrBytes, VersionRange,
 };
-
 
 /// Valid versions: 0-6
 #[non_exhaustive]
@@ -23,17 +24,17 @@ use crate::protocol::{
 #[builder(default)]
 pub struct LeaderAndIsrPartitionError {
     /// The topic name.
-    /// 
+    ///
     /// Supported API versions: 0-4
     pub topic_name: super::TopicName,
 
     /// The partition index.
-    /// 
+    ///
     /// Supported API versions: 0-6
     pub partition_index: i32,
 
     /// The partition error code, or 0 if there was no error.
-    /// 
+    ///
     /// Supported API versions: 0-6
     pub error_code: i16,
 
@@ -44,7 +45,7 @@ pub struct LeaderAndIsrPartitionError {
 impl Builder for LeaderAndIsrPartitionError {
     type Builder = LeaderAndIsrPartitionErrorBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         LeaderAndIsrPartitionErrorBuilder::default()
     }
 }
@@ -63,7 +64,10 @@ impl Encodable for LeaderAndIsrPartitionError {
         if version >= 4 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -86,7 +90,10 @@ impl Encodable for LeaderAndIsrPartitionError {
         if version >= 4 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -151,7 +158,7 @@ impl Message for LeaderAndIsrPartitionError {
 #[builder(default)]
 pub struct LeaderAndIsrTopicError {
     /// Each partition.
-    /// 
+    ///
     /// Supported API versions: 5-6
     pub partition_errors: Vec<LeaderAndIsrPartitionError>,
 
@@ -162,32 +169,40 @@ pub struct LeaderAndIsrTopicError {
 impl Builder for LeaderAndIsrTopicError {
     type Builder = LeaderAndIsrTopicErrorBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         LeaderAndIsrTopicErrorBuilder::default()
     }
 }
 
 impl MapEncodable for LeaderAndIsrTopicError {
     type Key = Uuid;
-    fn encode<B: ByteBufMut>(&self, key: &Self::Key, buf: &mut B, version: i16) -> Result<(), EncodeError> {
+    fn encode<B: ByteBufMut>(
+        &self,
+        key: &Self::Key,
+        buf: &mut B,
+        version: i16,
+    ) -> Result<(), EncodeError> {
         if version >= 5 {
             types::Uuid.encode(buf, key)?;
         } else {
             if key != &Uuid::nil() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 5 {
             types::CompactArray(types::Struct { version }).encode(buf, &self.partition_errors)?;
         } else {
             if !self.partition_errors.is_empty() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 4 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -202,20 +217,24 @@ impl MapEncodable for LeaderAndIsrTopicError {
             total_size += types::Uuid.compute_size(key)?;
         } else {
             if key != &Uuid::nil() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 5 {
-            total_size += types::CompactArray(types::Struct { version }).compute_size(&self.partition_errors)?;
+            total_size += types::CompactArray(types::Struct { version })
+                .compute_size(&self.partition_errors)?;
         } else {
             if !self.partition_errors.is_empty() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 4 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -250,10 +269,13 @@ impl MapDecodable for LeaderAndIsrTopicError {
                 unknown_tagged_fields.insert(tag as i32, unknown_value);
             }
         }
-        Ok((key_field, Self {
-            partition_errors,
-            unknown_tagged_fields,
-        }))
+        Ok((
+            key_field,
+            Self {
+                partition_errors,
+                unknown_tagged_fields,
+            },
+        ))
     }
 }
 
@@ -276,17 +298,17 @@ impl Message for LeaderAndIsrTopicError {
 #[builder(default)]
 pub struct LeaderAndIsrResponse {
     /// The error code, or 0 if there was no error.
-    /// 
+    ///
     /// Supported API versions: 0-6
     pub error_code: i16,
 
     /// Each partition in v0 to v4 message.
-    /// 
+    ///
     /// Supported API versions: 0-4
     pub partition_errors: Vec<LeaderAndIsrPartitionError>,
 
     /// Each topic
-    /// 
+    ///
     /// Supported API versions: 5-6
     pub topics: indexmap::IndexMap<Uuid, LeaderAndIsrTopicError>,
 
@@ -297,7 +319,7 @@ pub struct LeaderAndIsrResponse {
 impl Builder for LeaderAndIsrResponse {
     type Builder = LeaderAndIsrResponseBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         LeaderAndIsrResponseBuilder::default()
     }
 }
@@ -307,26 +329,30 @@ impl Encodable for LeaderAndIsrResponse {
         types::Int16.encode(buf, &self.error_code)?;
         if version <= 4 {
             if version >= 4 {
-                types::CompactArray(types::Struct { version }).encode(buf, &self.partition_errors)?;
+                types::CompactArray(types::Struct { version })
+                    .encode(buf, &self.partition_errors)?;
             } else {
                 types::Array(types::Struct { version }).encode(buf, &self.partition_errors)?;
             }
         } else {
             if !self.partition_errors.is_empty() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 5 {
             types::CompactArray(types::Struct { version }).encode(buf, &self.topics)?;
         } else {
             if !self.topics.is_empty() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 4 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -340,26 +366,32 @@ impl Encodable for LeaderAndIsrResponse {
         total_size += types::Int16.compute_size(&self.error_code)?;
         if version <= 4 {
             if version >= 4 {
-                total_size += types::CompactArray(types::Struct { version }).compute_size(&self.partition_errors)?;
+                total_size += types::CompactArray(types::Struct { version })
+                    .compute_size(&self.partition_errors)?;
             } else {
-                total_size += types::Array(types::Struct { version }).compute_size(&self.partition_errors)?;
+                total_size +=
+                    types::Array(types::Struct { version }).compute_size(&self.partition_errors)?;
             }
         } else {
             if !self.partition_errors.is_empty() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 5 {
-            total_size += types::CompactArray(types::Struct { version }).compute_size(&self.topics)?;
+            total_size +=
+                types::CompactArray(types::Struct { version }).compute_size(&self.topics)?;
         } else {
             if !self.topics.is_empty() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 4 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -431,4 +463,3 @@ impl HeaderVersion for LeaderAndIsrResponse {
         }
     }
 }
-

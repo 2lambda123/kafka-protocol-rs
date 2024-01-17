@@ -12,10 +12,11 @@ use log::error;
 use uuid::Uuid;
 
 use crate::protocol::{
-    Encodable, Decodable, MapEncodable, MapDecodable, Encoder, Decoder, EncodeError, DecodeError, Message, HeaderVersion, VersionRange,
-    types, write_unknown_tagged_fields, compute_unknown_tagged_fields_size, StrBytes, buf::{ByteBuf, ByteBufMut}, Builder
+    buf::{ByteBuf, ByteBufMut},
+    compute_unknown_tagged_fields_size, types, write_unknown_tagged_fields, Builder, Decodable,
+    DecodeError, Decoder, Encodable, EncodeError, Encoder, HeaderVersion, MapDecodable,
+    MapEncodable, Message, StrBytes, VersionRange,
 };
-
 
 /// Valid versions: 0
 #[non_exhaustive]
@@ -23,17 +24,17 @@ use crate::protocol::{
 #[builder(default)]
 pub struct ReassignablePartitionResponse {
     /// The partition index.
-    /// 
+    ///
     /// Supported API versions: 0
     pub partition_index: i32,
 
     /// The error code for this partition, or 0 if there was no error.
-    /// 
+    ///
     /// Supported API versions: 0
     pub error_code: i16,
 
     /// The error message for this partition, or null if there was no error.
-    /// 
+    ///
     /// Supported API versions: 0
     pub error_message: Option<StrBytes>,
 
@@ -44,7 +45,7 @@ pub struct ReassignablePartitionResponse {
 impl Builder for ReassignablePartitionResponse {
     type Builder = ReassignablePartitionResponseBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         ReassignablePartitionResponseBuilder::default()
     }
 }
@@ -56,7 +57,10 @@ impl Encodable for ReassignablePartitionResponse {
         types::CompactString.encode(buf, &self.error_message)?;
         let num_tagged_fields = self.unknown_tagged_fields.len();
         if num_tagged_fields > std::u32::MAX as usize {
-            error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+            error!(
+                "Too many tagged fields to encode ({} fields)",
+                num_tagged_fields
+            );
             return Err(EncodeError);
         }
         types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -71,7 +75,10 @@ impl Encodable for ReassignablePartitionResponse {
         total_size += types::CompactString.compute_size(&self.error_message)?;
         let num_tagged_fields = self.unknown_tagged_fields.len();
         if num_tagged_fields > std::u32::MAX as usize {
-            error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+            error!(
+                "Too many tagged fields to encode ({} fields)",
+                num_tagged_fields
+            );
             return Err(EncodeError);
         }
         total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -125,12 +132,12 @@ impl Message for ReassignablePartitionResponse {
 #[builder(default)]
 pub struct ReassignableTopicResponse {
     /// The topic name
-    /// 
+    ///
     /// Supported API versions: 0
     pub name: super::TopicName,
 
     /// The responses to partitions to reassign
-    /// 
+    ///
     /// Supported API versions: 0
     pub partitions: Vec<ReassignablePartitionResponse>,
 
@@ -141,7 +148,7 @@ pub struct ReassignableTopicResponse {
 impl Builder for ReassignableTopicResponse {
     type Builder = ReassignableTopicResponseBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         ReassignableTopicResponseBuilder::default()
     }
 }
@@ -152,7 +159,10 @@ impl Encodable for ReassignableTopicResponse {
         types::CompactArray(types::Struct { version }).encode(buf, &self.partitions)?;
         let num_tagged_fields = self.unknown_tagged_fields.len();
         if num_tagged_fields > std::u32::MAX as usize {
-            error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+            error!(
+                "Too many tagged fields to encode ({} fields)",
+                num_tagged_fields
+            );
             return Err(EncodeError);
         }
         types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -163,10 +173,14 @@ impl Encodable for ReassignableTopicResponse {
     fn compute_size(&self, version: i16) -> Result<usize, EncodeError> {
         let mut total_size = 0;
         total_size += types::CompactString.compute_size(&self.name)?;
-        total_size += types::CompactArray(types::Struct { version }).compute_size(&self.partitions)?;
+        total_size +=
+            types::CompactArray(types::Struct { version }).compute_size(&self.partitions)?;
         let num_tagged_fields = self.unknown_tagged_fields.len();
         if num_tagged_fields > std::u32::MAX as usize {
-            error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+            error!(
+                "Too many tagged fields to encode ({} fields)",
+                num_tagged_fields
+            );
             return Err(EncodeError);
         }
         total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -217,22 +231,22 @@ impl Message for ReassignableTopicResponse {
 #[builder(default)]
 pub struct AlterPartitionReassignmentsResponse {
     /// The duration in milliseconds for which the request was throttled due to a quota violation, or zero if the request did not violate any quota.
-    /// 
+    ///
     /// Supported API versions: 0
     pub throttle_time_ms: i32,
 
     /// The top-level error code, or 0 if there was no error.
-    /// 
+    ///
     /// Supported API versions: 0
     pub error_code: i16,
 
     /// The top-level error message, or null if there was no error.
-    /// 
+    ///
     /// Supported API versions: 0
     pub error_message: Option<StrBytes>,
 
     /// The responses to topics to reassign.
-    /// 
+    ///
     /// Supported API versions: 0
     pub responses: Vec<ReassignableTopicResponse>,
 
@@ -243,7 +257,7 @@ pub struct AlterPartitionReassignmentsResponse {
 impl Builder for AlterPartitionReassignmentsResponse {
     type Builder = AlterPartitionReassignmentsResponseBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         AlterPartitionReassignmentsResponseBuilder::default()
     }
 }
@@ -256,7 +270,10 @@ impl Encodable for AlterPartitionReassignmentsResponse {
         types::CompactArray(types::Struct { version }).encode(buf, &self.responses)?;
         let num_tagged_fields = self.unknown_tagged_fields.len();
         if num_tagged_fields > std::u32::MAX as usize {
-            error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+            error!(
+                "Too many tagged fields to encode ({} fields)",
+                num_tagged_fields
+            );
             return Err(EncodeError);
         }
         types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -269,10 +286,14 @@ impl Encodable for AlterPartitionReassignmentsResponse {
         total_size += types::Int32.compute_size(&self.throttle_time_ms)?;
         total_size += types::Int16.compute_size(&self.error_code)?;
         total_size += types::CompactString.compute_size(&self.error_message)?;
-        total_size += types::CompactArray(types::Struct { version }).compute_size(&self.responses)?;
+        total_size +=
+            types::CompactArray(types::Struct { version }).compute_size(&self.responses)?;
         let num_tagged_fields = self.unknown_tagged_fields.len();
         if num_tagged_fields > std::u32::MAX as usize {
-            error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+            error!(
+                "Too many tagged fields to encode ({} fields)",
+                num_tagged_fields
+            );
             return Err(EncodeError);
         }
         total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -328,4 +349,3 @@ impl HeaderVersion for AlterPartitionReassignmentsResponse {
         1
     }
 }
-

@@ -12,10 +12,11 @@ use log::error;
 use uuid::Uuid;
 
 use crate::protocol::{
-    Encodable, Decodable, MapEncodable, MapDecodable, Encoder, Decoder, EncodeError, DecodeError, Message, HeaderVersion, VersionRange,
-    types, write_unknown_tagged_fields, compute_unknown_tagged_fields_size, StrBytes, buf::{ByteBuf, ByteBufMut}, Builder
+    buf::{ByteBuf, ByteBufMut},
+    compute_unknown_tagged_fields_size, types, write_unknown_tagged_fields, Builder, Decodable,
+    DecodeError, Decoder, Encodable, EncodeError, Encoder, HeaderVersion, MapDecodable,
+    MapEncodable, Message, StrBytes, VersionRange,
 };
-
 
 /// Valid versions: 0-3
 #[non_exhaustive]
@@ -23,7 +24,7 @@ use crate::protocol::{
 #[builder(default)]
 pub struct AddPartitionsToTxnTopic {
     /// The partition indexes to add to the transaction
-    /// 
+    ///
     /// Supported API versions: 0-3
     pub partitions: Vec<i32>,
 
@@ -34,14 +35,19 @@ pub struct AddPartitionsToTxnTopic {
 impl Builder for AddPartitionsToTxnTopic {
     type Builder = AddPartitionsToTxnTopicBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         AddPartitionsToTxnTopicBuilder::default()
     }
 }
 
 impl MapEncodable for AddPartitionsToTxnTopic {
     type Key = super::TopicName;
-    fn encode<B: ByteBufMut>(&self, key: &Self::Key, buf: &mut B, version: i16) -> Result<(), EncodeError> {
+    fn encode<B: ByteBufMut>(
+        &self,
+        key: &Self::Key,
+        buf: &mut B,
+        version: i16,
+    ) -> Result<(), EncodeError> {
         if version >= 3 {
             types::CompactString.encode(buf, key)?;
         } else {
@@ -55,7 +61,10 @@ impl MapEncodable for AddPartitionsToTxnTopic {
         if version >= 3 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -79,7 +88,10 @@ impl MapEncodable for AddPartitionsToTxnTopic {
         if version >= 3 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -114,10 +126,13 @@ impl MapDecodable for AddPartitionsToTxnTopic {
                 unknown_tagged_fields.insert(tag as i32, unknown_value);
             }
         }
-        Ok((key_field, Self {
-            partitions,
-            unknown_tagged_fields,
-        }))
+        Ok((
+            key_field,
+            Self {
+                partitions,
+                unknown_tagged_fields,
+            },
+        ))
     }
 }
 
@@ -140,22 +155,22 @@ impl Message for AddPartitionsToTxnTopic {
 #[builder(default)]
 pub struct AddPartitionsToTxnRequest {
     /// The transactional id corresponding to the transaction.
-    /// 
+    ///
     /// Supported API versions: 0-3
     pub transactional_id: super::TransactionalId,
 
     /// Current producer id in use by the transactional id.
-    /// 
+    ///
     /// Supported API versions: 0-3
     pub producer_id: super::ProducerId,
 
     /// Current epoch associated with the producer id.
-    /// 
+    ///
     /// Supported API versions: 0-3
     pub producer_epoch: i16,
 
     /// The partitions to add to the transaction.
-    /// 
+    ///
     /// Supported API versions: 0-3
     pub topics: indexmap::IndexMap<super::TopicName, AddPartitionsToTxnTopic>,
 
@@ -166,7 +181,7 @@ pub struct AddPartitionsToTxnRequest {
 impl Builder for AddPartitionsToTxnRequest {
     type Builder = AddPartitionsToTxnRequestBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         AddPartitionsToTxnRequestBuilder::default()
     }
 }
@@ -188,7 +203,10 @@ impl Encodable for AddPartitionsToTxnRequest {
         if version >= 3 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -207,14 +225,18 @@ impl Encodable for AddPartitionsToTxnRequest {
         total_size += types::Int64.compute_size(&self.producer_id)?;
         total_size += types::Int16.compute_size(&self.producer_epoch)?;
         if version >= 3 {
-            total_size += types::CompactArray(types::Struct { version }).compute_size(&self.topics)?;
+            total_size +=
+                types::CompactArray(types::Struct { version }).compute_size(&self.topics)?;
         } else {
             total_size += types::Array(types::Struct { version }).compute_size(&self.topics)?;
         }
         if version >= 3 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -285,4 +307,3 @@ impl HeaderVersion for AddPartitionsToTxnRequest {
         }
     }
 }
-

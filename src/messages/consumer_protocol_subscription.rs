@@ -12,46 +12,51 @@ use log::error;
 use uuid::Uuid;
 
 use crate::protocol::{
-    Encodable, Decodable, MapEncodable, MapDecodable, Encoder, Decoder, EncodeError, DecodeError, Message, HeaderVersion, VersionRange,
-    types, write_unknown_tagged_fields, compute_unknown_tagged_fields_size, StrBytes, buf::{ByteBuf, ByteBufMut}, Builder
+    buf::{ByteBuf, ByteBufMut},
+    compute_unknown_tagged_fields_size, types, write_unknown_tagged_fields, Builder, Decodable,
+    DecodeError, Decoder, Encodable, EncodeError, Encoder, HeaderVersion, MapDecodable,
+    MapEncodable, Message, StrBytes, VersionRange,
 };
-
 
 /// Valid versions: 0-1
 #[non_exhaustive]
 #[derive(Debug, Clone, PartialEq, derive_builder::Builder)]
 #[builder(default)]
 pub struct TopicPartition {
-    /// 
-    /// 
+    ///
+    ///
     /// Supported API versions: 1
     pub partitions: Vec<i32>,
-
 }
 
 impl Builder for TopicPartition {
     type Builder = TopicPartitionBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         TopicPartitionBuilder::default()
     }
 }
 
 impl MapEncodable for TopicPartition {
     type Key = super::TopicName;
-    fn encode<B: ByteBufMut>(&self, key: &Self::Key, buf: &mut B, version: i16) -> Result<(), EncodeError> {
+    fn encode<B: ByteBufMut>(
+        &self,
+        key: &Self::Key,
+        buf: &mut B,
+        version: i16,
+    ) -> Result<(), EncodeError> {
         if version >= 1 {
             types::String.encode(buf, key)?;
         } else {
             if !key.is_empty() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 1 {
             types::Array(types::Int32).encode(buf, &self.partitions)?;
         } else {
             if !self.partitions.is_empty() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
 
@@ -63,14 +68,14 @@ impl MapEncodable for TopicPartition {
             total_size += types::String.compute_size(key)?;
         } else {
             if !key.is_empty() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 1 {
             total_size += types::Array(types::Int32).compute_size(&self.partitions)?;
         } else {
             if !self.partitions.is_empty() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
 
@@ -91,9 +96,7 @@ impl MapDecodable for TopicPartition {
         } else {
             Default::default()
         };
-        Ok((key_field, Self {
-            partitions,
-        }))
+        Ok((key_field, Self { partitions }))
     }
 }
 
@@ -114,27 +117,26 @@ impl Message for TopicPartition {
 #[derive(Debug, Clone, PartialEq, derive_builder::Builder)]
 #[builder(default)]
 pub struct ConsumerProtocolSubscription {
-    /// 
-    /// 
+    ///
+    ///
     /// Supported API versions: 0-1
     pub topics: Vec<StrBytes>,
 
-    /// 
-    /// 
+    ///
+    ///
     /// Supported API versions: 0-1
     pub user_data: Option<Bytes>,
 
-    /// 
-    /// 
+    ///
+    ///
     /// Supported API versions: 1
     pub owned_partitions: indexmap::IndexMap<super::TopicName, TopicPartition>,
-
 }
 
 impl Builder for ConsumerProtocolSubscription {
     type Builder = ConsumerProtocolSubscriptionBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         ConsumerProtocolSubscriptionBuilder::default()
     }
 }
@@ -154,7 +156,8 @@ impl Encodable for ConsumerProtocolSubscription {
         total_size += types::Array(types::String).compute_size(&self.topics)?;
         total_size += types::Bytes.compute_size(&self.user_data)?;
         if version >= 1 {
-            total_size += types::Array(types::Struct { version }).compute_size(&self.owned_partitions)?;
+            total_size +=
+                types::Array(types::Struct { version }).compute_size(&self.owned_partitions)?;
         }
 
         Ok(total_size)
@@ -191,4 +194,3 @@ impl Default for ConsumerProtocolSubscription {
 impl Message for ConsumerProtocolSubscription {
     const VERSIONS: VersionRange = VersionRange { min: 0, max: 1 };
 }
-

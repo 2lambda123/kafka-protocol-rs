@@ -12,28 +12,29 @@ use log::error;
 use uuid::Uuid;
 
 use crate::protocol::{
-    Encodable, Decodable, MapEncodable, MapDecodable, Encoder, Decoder, EncodeError, DecodeError, Message, HeaderVersion, VersionRange,
-    types, write_unknown_tagged_fields, compute_unknown_tagged_fields_size, StrBytes, buf::{ByteBuf, ByteBufMut}, Builder
+    buf::{ByteBuf, ByteBufMut},
+    compute_unknown_tagged_fields_size, types, write_unknown_tagged_fields, Builder, Decodable,
+    DecodeError, Decoder, Encodable, EncodeError, Encoder, HeaderVersion, MapDecodable,
+    MapEncodable, Message, StrBytes, VersionRange,
 };
-
 
 /// Valid versions: 0
 #[non_exhaustive]
 #[derive(Debug, Clone, PartialEq, derive_builder::Builder)]
 #[builder(default)]
 pub struct TransactionState {
-    /// 
-    /// 
+    ///
+    ///
     /// Supported API versions: 0
     pub transactional_id: super::TransactionalId,
 
-    /// 
-    /// 
+    ///
+    ///
     /// Supported API versions: 0
     pub producer_id: super::ProducerId,
 
     /// The current transaction state of the producer
-    /// 
+    ///
     /// Supported API versions: 0
     pub transaction_state: StrBytes,
 
@@ -44,7 +45,7 @@ pub struct TransactionState {
 impl Builder for TransactionState {
     type Builder = TransactionStateBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         TransactionStateBuilder::default()
     }
 }
@@ -56,7 +57,10 @@ impl Encodable for TransactionState {
         types::CompactString.encode(buf, &self.transaction_state)?;
         let num_tagged_fields = self.unknown_tagged_fields.len();
         if num_tagged_fields > std::u32::MAX as usize {
-            error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+            error!(
+                "Too many tagged fields to encode ({} fields)",
+                num_tagged_fields
+            );
             return Err(EncodeError);
         }
         types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -71,7 +75,10 @@ impl Encodable for TransactionState {
         total_size += types::CompactString.compute_size(&self.transaction_state)?;
         let num_tagged_fields = self.unknown_tagged_fields.len();
         if num_tagged_fields > std::u32::MAX as usize {
-            error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+            error!(
+                "Too many tagged fields to encode ({} fields)",
+                num_tagged_fields
+            );
             return Err(EncodeError);
         }
         total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -125,22 +132,22 @@ impl Message for TransactionState {
 #[builder(default)]
 pub struct ListTransactionsResponse {
     /// The duration in milliseconds for which the request was throttled due to a quota violation, or zero if the request did not violate any quota.
-    /// 
+    ///
     /// Supported API versions: 0
     pub throttle_time_ms: i32,
 
-    /// 
-    /// 
+    ///
+    ///
     /// Supported API versions: 0
     pub error_code: i16,
 
     /// Set of state filters provided in the request which were unknown to the transaction coordinator
-    /// 
+    ///
     /// Supported API versions: 0
     pub unknown_state_filters: Vec<StrBytes>,
 
-    /// 
-    /// 
+    ///
+    ///
     /// Supported API versions: 0
     pub transaction_states: Vec<TransactionState>,
 
@@ -151,7 +158,7 @@ pub struct ListTransactionsResponse {
 impl Builder for ListTransactionsResponse {
     type Builder = ListTransactionsResponseBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         ListTransactionsResponseBuilder::default()
     }
 }
@@ -164,7 +171,10 @@ impl Encodable for ListTransactionsResponse {
         types::CompactArray(types::Struct { version }).encode(buf, &self.transaction_states)?;
         let num_tagged_fields = self.unknown_tagged_fields.len();
         if num_tagged_fields > std::u32::MAX as usize {
-            error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+            error!(
+                "Too many tagged fields to encode ({} fields)",
+                num_tagged_fields
+            );
             return Err(EncodeError);
         }
         types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -176,11 +186,16 @@ impl Encodable for ListTransactionsResponse {
         let mut total_size = 0;
         total_size += types::Int32.compute_size(&self.throttle_time_ms)?;
         total_size += types::Int16.compute_size(&self.error_code)?;
-        total_size += types::CompactArray(types::CompactString).compute_size(&self.unknown_state_filters)?;
-        total_size += types::CompactArray(types::Struct { version }).compute_size(&self.transaction_states)?;
+        total_size +=
+            types::CompactArray(types::CompactString).compute_size(&self.unknown_state_filters)?;
+        total_size += types::CompactArray(types::Struct { version })
+            .compute_size(&self.transaction_states)?;
         let num_tagged_fields = self.unknown_tagged_fields.len();
         if num_tagged_fields > std::u32::MAX as usize {
-            error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+            error!(
+                "Too many tagged fields to encode ({} fields)",
+                num_tagged_fields
+            );
             return Err(EncodeError);
         }
         total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -236,4 +251,3 @@ impl HeaderVersion for ListTransactionsResponse {
         1
     }
 }
-

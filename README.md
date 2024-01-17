@@ -10,13 +10,14 @@ for an example of protocol schema.
 
 Protocol messages are generated against the most recent stable Kafka release, currently [3.3.2](https://github.com/apache/kafka/releases/tag/3.3.2).
 
-Although the Kafka protocol remains relatively stable and strives to be backwards compatible, new fields are occasionally 
+Although the Kafka protocol remains relatively stable and strives to be backwards compatible, new fields are occasionally
 added. In order to ensure forward compatibility with the protocol, this crate marks all exported items as `#[non-exhaustive]`.
-Protocol messages can be constructed using either `Default::default` or their provided [builder](https://docs.rs/derive_builder/latest/derive_builder/). 
+Protocol messages can be constructed using either `Default::default` or their provided [builder](https://docs.rs/derive_builder/latest/derive_builder/).
 
 ## Working with messages
 
 Using `Default::default`:
+
 ```rust
 use kafka_protocol::messages::{ApiKey, MetadataRequest, RequestHeader};
 use kafka_protocol::protocol::StrBytes;
@@ -32,6 +33,7 @@ request.allow_auto_topic_creation = true;
 ```
 
 Using `kafka_protocol::protocol::Builder`:
+
 ```rust
 use kafka_protocol::messages::{ApiKey, MetadataRequest, RequestHeader};
 use kafka_protocol::protocol::{Builder, StrBytes};
@@ -47,6 +49,7 @@ let request = MetadataRequest::builder()
     .allow_auto_topic_creation(true)
     .build();
 ```
+
 ### Serialization
 
 Once a message has been created, it can be serialized using `Encodable`, writing
@@ -79,7 +82,7 @@ let bytes: [u8; 25] = [
         0x76, 0x61, 0x06, 0x32, 0x2e, 0x38, 0x2e, 0x30,
         0x00
 ];
- 
+
 let res = ApiVersionsRequest::decode(&mut Bytes::from(bytes.to_vec()), 3).unwrap();
 ```
 

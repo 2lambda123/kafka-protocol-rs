@@ -12,10 +12,11 @@ use log::error;
 use uuid::Uuid;
 
 use crate::protocol::{
-    Encodable, Decodable, MapEncodable, MapDecodable, Encoder, Decoder, EncodeError, DecodeError, Message, HeaderVersion, VersionRange,
-    types, write_unknown_tagged_fields, compute_unknown_tagged_fields_size, StrBytes, buf::{ByteBuf, ByteBufMut}, Builder
+    buf::{ByteBuf, ByteBufMut},
+    compute_unknown_tagged_fields_size, types, write_unknown_tagged_fields, Builder, Decodable,
+    DecodeError, Decoder, Encodable, EncodeError, Encoder, HeaderVersion, MapDecodable,
+    MapEncodable, Message, StrBytes, VersionRange,
 };
-
 
 /// Valid versions: 0-4
 #[non_exhaustive]
@@ -23,22 +24,22 @@ use crate::protocol::{
 #[builder(default)]
 pub struct EpochEndOffset {
     /// The error code 0, or if there was no error.
-    /// 
+    ///
     /// Supported API versions: 0-4
     pub error_code: i16,
 
     /// The partition index.
-    /// 
+    ///
     /// Supported API versions: 0-4
     pub partition: i32,
 
     /// The leader epoch of the partition.
-    /// 
+    ///
     /// Supported API versions: 1-4
     pub leader_epoch: i32,
 
     /// The end offset of the epoch.
-    /// 
+    ///
     /// Supported API versions: 0-4
     pub end_offset: i64,
 
@@ -49,7 +50,7 @@ pub struct EpochEndOffset {
 impl Builder for EpochEndOffset {
     type Builder = EpochEndOffsetBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         EpochEndOffsetBuilder::default()
     }
 }
@@ -65,7 +66,10 @@ impl Encodable for EpochEndOffset {
         if version >= 4 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -85,7 +89,10 @@ impl Encodable for EpochEndOffset {
         if version >= 4 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -149,7 +156,7 @@ impl Message for EpochEndOffset {
 #[builder(default)]
 pub struct OffsetForLeaderTopicResult {
     /// Each partition in the topic we fetched offsets for.
-    /// 
+    ///
     /// Supported API versions: 0-4
     pub partitions: Vec<EpochEndOffset>,
 
@@ -160,14 +167,19 @@ pub struct OffsetForLeaderTopicResult {
 impl Builder for OffsetForLeaderTopicResult {
     type Builder = OffsetForLeaderTopicResultBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         OffsetForLeaderTopicResultBuilder::default()
     }
 }
 
 impl MapEncodable for OffsetForLeaderTopicResult {
     type Key = super::TopicName;
-    fn encode<B: ByteBufMut>(&self, key: &Self::Key, buf: &mut B, version: i16) -> Result<(), EncodeError> {
+    fn encode<B: ByteBufMut>(
+        &self,
+        key: &Self::Key,
+        buf: &mut B,
+        version: i16,
+    ) -> Result<(), EncodeError> {
         if version >= 4 {
             types::CompactString.encode(buf, key)?;
         } else {
@@ -181,7 +193,10 @@ impl MapEncodable for OffsetForLeaderTopicResult {
         if version >= 4 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -198,14 +213,18 @@ impl MapEncodable for OffsetForLeaderTopicResult {
             total_size += types::String.compute_size(key)?;
         }
         if version >= 4 {
-            total_size += types::CompactArray(types::Struct { version }).compute_size(&self.partitions)?;
+            total_size +=
+                types::CompactArray(types::Struct { version }).compute_size(&self.partitions)?;
         } else {
             total_size += types::Array(types::Struct { version }).compute_size(&self.partitions)?;
         }
         if version >= 4 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -240,10 +259,13 @@ impl MapDecodable for OffsetForLeaderTopicResult {
                 unknown_tagged_fields.insert(tag as i32, unknown_value);
             }
         }
-        Ok((key_field, Self {
-            partitions,
-            unknown_tagged_fields,
-        }))
+        Ok((
+            key_field,
+            Self {
+                partitions,
+                unknown_tagged_fields,
+            },
+        ))
     }
 }
 
@@ -266,12 +288,12 @@ impl Message for OffsetForLeaderTopicResult {
 #[builder(default)]
 pub struct OffsetForLeaderEpochResponse {
     /// The duration in milliseconds for which the request was throttled due to a quota violation, or zero if the request did not violate any quota.
-    /// 
+    ///
     /// Supported API versions: 2-4
     pub throttle_time_ms: i32,
 
     /// Each topic we fetched offsets for.
-    /// 
+    ///
     /// Supported API versions: 0-4
     pub topics: indexmap::IndexMap<super::TopicName, OffsetForLeaderTopicResult>,
 
@@ -282,7 +304,7 @@ pub struct OffsetForLeaderEpochResponse {
 impl Builder for OffsetForLeaderEpochResponse {
     type Builder = OffsetForLeaderEpochResponseBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         OffsetForLeaderEpochResponseBuilder::default()
     }
 }
@@ -300,7 +322,10 @@ impl Encodable for OffsetForLeaderEpochResponse {
         if version >= 4 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -315,14 +340,18 @@ impl Encodable for OffsetForLeaderEpochResponse {
             total_size += types::Int32.compute_size(&self.throttle_time_ms)?;
         }
         if version >= 4 {
-            total_size += types::CompactArray(types::Struct { version }).compute_size(&self.topics)?;
+            total_size +=
+                types::CompactArray(types::Struct { version }).compute_size(&self.topics)?;
         } else {
             total_size += types::Array(types::Struct { version }).compute_size(&self.topics)?;
         }
         if version >= 4 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -387,4 +416,3 @@ impl HeaderVersion for OffsetForLeaderEpochResponse {
         }
     }
 }
-

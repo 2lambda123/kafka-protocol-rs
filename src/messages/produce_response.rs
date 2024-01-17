@@ -12,10 +12,11 @@ use log::error;
 use uuid::Uuid;
 
 use crate::protocol::{
-    Encodable, Decodable, MapEncodable, MapDecodable, Encoder, Decoder, EncodeError, DecodeError, Message, HeaderVersion, VersionRange,
-    types, write_unknown_tagged_fields, compute_unknown_tagged_fields_size, StrBytes, buf::{ByteBuf, ByteBufMut}, Builder
+    buf::{ByteBuf, ByteBufMut},
+    compute_unknown_tagged_fields_size, types, write_unknown_tagged_fields, Builder, Decodable,
+    DecodeError, Decoder, Encodable, EncodeError, Encoder, HeaderVersion, MapDecodable,
+    MapEncodable, Message, StrBytes, VersionRange,
 };
-
 
 /// Valid versions: 0-9
 #[non_exhaustive]
@@ -23,12 +24,12 @@ use crate::protocol::{
 #[builder(default)]
 pub struct BatchIndexAndErrorMessage {
     /// The batch index of the record that cause the batch to be dropped
-    /// 
+    ///
     /// Supported API versions: 8-9
     pub batch_index: i32,
 
     /// The error message of the record that caused the batch to be dropped
-    /// 
+    ///
     /// Supported API versions: 8-9
     pub batch_index_error_message: Option<StrBytes>,
 
@@ -39,7 +40,7 @@ pub struct BatchIndexAndErrorMessage {
 impl Builder for BatchIndexAndErrorMessage {
     type Builder = BatchIndexAndErrorMessageBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         BatchIndexAndErrorMessageBuilder::default()
     }
 }
@@ -50,7 +51,7 @@ impl Encodable for BatchIndexAndErrorMessage {
             types::Int32.encode(buf, &self.batch_index)?;
         } else {
             if self.batch_index != 0 {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 8 {
@@ -61,13 +62,16 @@ impl Encodable for BatchIndexAndErrorMessage {
             }
         } else {
             if !self.batch_index_error_message.is_none() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 9 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -82,7 +86,7 @@ impl Encodable for BatchIndexAndErrorMessage {
             total_size += types::Int32.compute_size(&self.batch_index)?;
         } else {
             if self.batch_index != 0 {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 8 {
@@ -93,13 +97,16 @@ impl Encodable for BatchIndexAndErrorMessage {
             }
         } else {
             if !self.batch_index_error_message.is_none() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 9 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -165,37 +172,37 @@ impl Message for BatchIndexAndErrorMessage {
 #[builder(default)]
 pub struct PartitionProduceResponse {
     /// The partition index.
-    /// 
+    ///
     /// Supported API versions: 0-9
     pub index: i32,
 
     /// The error code, or 0 if there was no error.
-    /// 
+    ///
     /// Supported API versions: 0-9
     pub error_code: i16,
 
     /// The base offset.
-    /// 
+    ///
     /// Supported API versions: 0-9
     pub base_offset: i64,
 
     /// The timestamp returned by broker after appending the messages. If CreateTime is used for the topic, the timestamp will be -1.  If LogAppendTime is used for the topic, the timestamp will be the broker local time when the messages are appended.
-    /// 
+    ///
     /// Supported API versions: 2-9
     pub log_append_time_ms: i64,
 
     /// The log start offset.
-    /// 
+    ///
     /// Supported API versions: 5-9
     pub log_start_offset: i64,
 
     /// The batch indices of records that caused the batch to be dropped
-    /// 
+    ///
     /// Supported API versions: 8-9
     pub record_errors: Vec<BatchIndexAndErrorMessage>,
 
     /// The global error message summarizing the common root cause of the records that caused the batch to be dropped
-    /// 
+    ///
     /// Supported API versions: 8-9
     pub error_message: Option<StrBytes>,
 
@@ -206,7 +213,7 @@ pub struct PartitionProduceResponse {
 impl Builder for PartitionProduceResponse {
     type Builder = PartitionProduceResponseBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         PartitionProduceResponseBuilder::default()
     }
 }
@@ -239,7 +246,10 @@ impl Encodable for PartitionProduceResponse {
         if version >= 9 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -261,9 +271,11 @@ impl Encodable for PartitionProduceResponse {
         }
         if version >= 8 {
             if version >= 9 {
-                total_size += types::CompactArray(types::Struct { version }).compute_size(&self.record_errors)?;
+                total_size += types::CompactArray(types::Struct { version })
+                    .compute_size(&self.record_errors)?;
             } else {
-                total_size += types::Array(types::Struct { version }).compute_size(&self.record_errors)?;
+                total_size +=
+                    types::Array(types::Struct { version }).compute_size(&self.record_errors)?;
             }
         }
         if version >= 8 {
@@ -276,7 +288,10 @@ impl Encodable for PartitionProduceResponse {
         if version >= 9 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -369,7 +384,7 @@ impl Message for PartitionProduceResponse {
 #[builder(default)]
 pub struct TopicProduceResponse {
     /// Each partition that we produced to within the topic.
-    /// 
+    ///
     /// Supported API versions: 0-9
     pub partition_responses: Vec<PartitionProduceResponse>,
 
@@ -380,28 +395,37 @@ pub struct TopicProduceResponse {
 impl Builder for TopicProduceResponse {
     type Builder = TopicProduceResponseBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         TopicProduceResponseBuilder::default()
     }
 }
 
 impl MapEncodable for TopicProduceResponse {
     type Key = super::TopicName;
-    fn encode<B: ByteBufMut>(&self, key: &Self::Key, buf: &mut B, version: i16) -> Result<(), EncodeError> {
+    fn encode<B: ByteBufMut>(
+        &self,
+        key: &Self::Key,
+        buf: &mut B,
+        version: i16,
+    ) -> Result<(), EncodeError> {
         if version >= 9 {
             types::CompactString.encode(buf, key)?;
         } else {
             types::String.encode(buf, key)?;
         }
         if version >= 9 {
-            types::CompactArray(types::Struct { version }).encode(buf, &self.partition_responses)?;
+            types::CompactArray(types::Struct { version })
+                .encode(buf, &self.partition_responses)?;
         } else {
             types::Array(types::Struct { version }).encode(buf, &self.partition_responses)?;
         }
         if version >= 9 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -418,14 +442,19 @@ impl MapEncodable for TopicProduceResponse {
             total_size += types::String.compute_size(key)?;
         }
         if version >= 9 {
-            total_size += types::CompactArray(types::Struct { version }).compute_size(&self.partition_responses)?;
+            total_size += types::CompactArray(types::Struct { version })
+                .compute_size(&self.partition_responses)?;
         } else {
-            total_size += types::Array(types::Struct { version }).compute_size(&self.partition_responses)?;
+            total_size +=
+                types::Array(types::Struct { version }).compute_size(&self.partition_responses)?;
         }
         if version >= 9 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -460,10 +489,13 @@ impl MapDecodable for TopicProduceResponse {
                 unknown_tagged_fields.insert(tag as i32, unknown_value);
             }
         }
-        Ok((key_field, Self {
-            partition_responses,
-            unknown_tagged_fields,
-        }))
+        Ok((
+            key_field,
+            Self {
+                partition_responses,
+                unknown_tagged_fields,
+            },
+        ))
     }
 }
 
@@ -486,12 +518,12 @@ impl Message for TopicProduceResponse {
 #[builder(default)]
 pub struct ProduceResponse {
     /// Each produce response
-    /// 
+    ///
     /// Supported API versions: 0-9
     pub responses: indexmap::IndexMap<super::TopicName, TopicProduceResponse>,
 
     /// The duration in milliseconds for which the request was throttled due to a quota violation, or zero if the request did not violate any quota.
-    /// 
+    ///
     /// Supported API versions: 1-9
     pub throttle_time_ms: i32,
 
@@ -502,7 +534,7 @@ pub struct ProduceResponse {
 impl Builder for ProduceResponse {
     type Builder = ProduceResponseBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         ProduceResponseBuilder::default()
     }
 }
@@ -520,7 +552,10 @@ impl Encodable for ProduceResponse {
         if version >= 9 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -532,7 +567,8 @@ impl Encodable for ProduceResponse {
     fn compute_size(&self, version: i16) -> Result<usize, EncodeError> {
         let mut total_size = 0;
         if version >= 9 {
-            total_size += types::CompactArray(types::Struct { version }).compute_size(&self.responses)?;
+            total_size +=
+                types::CompactArray(types::Struct { version }).compute_size(&self.responses)?;
         } else {
             total_size += types::Array(types::Struct { version }).compute_size(&self.responses)?;
         }
@@ -542,7 +578,10 @@ impl Encodable for ProduceResponse {
         if version >= 9 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -607,4 +646,3 @@ impl HeaderVersion for ProduceResponse {
         }
     }
 }
-

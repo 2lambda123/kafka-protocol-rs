@@ -12,10 +12,11 @@ use log::error;
 use uuid::Uuid;
 
 use crate::protocol::{
-    Encodable, Decodable, MapEncodable, MapDecodable, Encoder, Decoder, EncodeError, DecodeError, Message, HeaderVersion, VersionRange,
-    types, write_unknown_tagged_fields, compute_unknown_tagged_fields_size, StrBytes, buf::{ByteBuf, ByteBufMut}, Builder
+    buf::{ByteBuf, ByteBufMut},
+    compute_unknown_tagged_fields_size, types, write_unknown_tagged_fields, Builder, Decodable,
+    DecodeError, Decoder, Encodable, EncodeError, Encoder, HeaderVersion, MapDecodable,
+    MapEncodable, Message, StrBytes, VersionRange,
 };
-
 
 /// Valid versions: 0-9
 #[non_exhaustive]
@@ -23,17 +24,17 @@ use crate::protocol::{
 #[builder(default)]
 pub struct JoinGroupResponseMember {
     /// The group member ID.
-    /// 
+    ///
     /// Supported API versions: 0-9
     pub member_id: StrBytes,
 
     /// The unique identifier of the consumer instance provided by end user.
-    /// 
+    ///
     /// Supported API versions: 5-9
     pub group_instance_id: Option<StrBytes>,
 
     /// The group member metadata.
-    /// 
+    ///
     /// Supported API versions: 0-9
     pub metadata: Bytes,
 
@@ -44,7 +45,7 @@ pub struct JoinGroupResponseMember {
 impl Builder for JoinGroupResponseMember {
     type Builder = JoinGroupResponseMemberBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         JoinGroupResponseMemberBuilder::default()
     }
 }
@@ -71,7 +72,10 @@ impl Encodable for JoinGroupResponseMember {
         if version >= 6 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -102,7 +106,10 @@ impl Encodable for JoinGroupResponseMember {
         if version >= 6 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -175,47 +182,47 @@ impl Message for JoinGroupResponseMember {
 #[builder(default)]
 pub struct JoinGroupResponse {
     /// The duration in milliseconds for which the request was throttled due to a quota violation, or zero if the request did not violate any quota.
-    /// 
+    ///
     /// Supported API versions: 2-9
     pub throttle_time_ms: i32,
 
     /// The error code, or 0 if there was no error.
-    /// 
+    ///
     /// Supported API versions: 0-9
     pub error_code: i16,
 
     /// The generation ID of the group.
-    /// 
+    ///
     /// Supported API versions: 0-9
     pub generation_id: i32,
 
     /// The group protocol name.
-    /// 
+    ///
     /// Supported API versions: 7-9
     pub protocol_type: Option<StrBytes>,
 
     /// The group protocol selected by the coordinator.
-    /// 
+    ///
     /// Supported API versions: 0-9
     pub protocol_name: Option<StrBytes>,
 
     /// The leader of the group.
-    /// 
+    ///
     /// Supported API versions: 0-9
     pub leader: StrBytes,
 
     /// True if the leader must skip running the assignment.
-    /// 
+    ///
     /// Supported API versions: 9
     pub skip_assignment: bool,
 
     /// The member ID assigned by the group coordinator.
-    /// 
+    ///
     /// Supported API versions: 0-9
     pub member_id: StrBytes,
 
-    /// 
-    /// 
+    ///
+    ///
     /// Supported API versions: 0-9
     pub members: Vec<JoinGroupResponseMember>,
 
@@ -226,7 +233,7 @@ pub struct JoinGroupResponse {
 impl Builder for JoinGroupResponse {
     type Builder = JoinGroupResponseBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         JoinGroupResponseBuilder::default()
     }
 }
@@ -255,7 +262,7 @@ impl Encodable for JoinGroupResponse {
             types::Boolean.encode(buf, &self.skip_assignment)?;
         } else {
             if self.skip_assignment {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 6 {
@@ -271,7 +278,10 @@ impl Encodable for JoinGroupResponse {
         if version >= 6 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -304,7 +314,7 @@ impl Encodable for JoinGroupResponse {
             total_size += types::Boolean.compute_size(&self.skip_assignment)?;
         } else {
             if self.skip_assignment {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 6 {
@@ -313,14 +323,18 @@ impl Encodable for JoinGroupResponse {
             total_size += types::String.compute_size(&self.member_id)?;
         }
         if version >= 6 {
-            total_size += types::CompactArray(types::Struct { version }).compute_size(&self.members)?;
+            total_size +=
+                types::CompactArray(types::Struct { version }).compute_size(&self.members)?;
         } else {
             total_size += types::Array(types::Struct { version }).compute_size(&self.members)?;
         }
         if version >= 6 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -426,4 +440,3 @@ impl HeaderVersion for JoinGroupResponse {
         }
     }
 }
-

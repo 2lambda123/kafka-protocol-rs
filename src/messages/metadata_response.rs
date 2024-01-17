@@ -12,10 +12,11 @@ use log::error;
 use uuid::Uuid;
 
 use crate::protocol::{
-    Encodable, Decodable, MapEncodable, MapDecodable, Encoder, Decoder, EncodeError, DecodeError, Message, HeaderVersion, VersionRange,
-    types, write_unknown_tagged_fields, compute_unknown_tagged_fields_size, StrBytes, buf::{ByteBuf, ByteBufMut}, Builder
+    buf::{ByteBuf, ByteBufMut},
+    compute_unknown_tagged_fields_size, types, write_unknown_tagged_fields, Builder, Decodable,
+    DecodeError, Decoder, Encodable, EncodeError, Encoder, HeaderVersion, MapDecodable,
+    MapEncodable, Message, StrBytes, VersionRange,
 };
-
 
 /// Valid versions: 0-12
 #[non_exhaustive]
@@ -23,17 +24,17 @@ use crate::protocol::{
 #[builder(default)]
 pub struct MetadataResponseBroker {
     /// The broker hostname.
-    /// 
+    ///
     /// Supported API versions: 0-12
     pub host: StrBytes,
 
     /// The broker port.
-    /// 
+    ///
     /// Supported API versions: 0-12
     pub port: i32,
 
     /// The rack of the broker, or null if it has not been assigned to a rack.
-    /// 
+    ///
     /// Supported API versions: 1-12
     pub rack: Option<StrBytes>,
 
@@ -44,14 +45,19 @@ pub struct MetadataResponseBroker {
 impl Builder for MetadataResponseBroker {
     type Builder = MetadataResponseBrokerBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         MetadataResponseBrokerBuilder::default()
     }
 }
 
 impl MapEncodable for MetadataResponseBroker {
     type Key = super::BrokerId;
-    fn encode<B: ByteBufMut>(&self, key: &Self::Key, buf: &mut B, version: i16) -> Result<(), EncodeError> {
+    fn encode<B: ByteBufMut>(
+        &self,
+        key: &Self::Key,
+        buf: &mut B,
+        version: i16,
+    ) -> Result<(), EncodeError> {
         types::Int32.encode(buf, key)?;
         if version >= 9 {
             types::CompactString.encode(buf, &self.host)?;
@@ -69,7 +75,10 @@ impl MapEncodable for MetadataResponseBroker {
         if version >= 9 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -97,7 +106,10 @@ impl MapEncodable for MetadataResponseBroker {
         if version >= 9 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -138,12 +150,15 @@ impl MapDecodable for MetadataResponseBroker {
                 unknown_tagged_fields.insert(tag as i32, unknown_value);
             }
         }
-        Ok((key_field, Self {
-            host,
-            port,
-            rack,
-            unknown_tagged_fields,
-        }))
+        Ok((
+            key_field,
+            Self {
+                host,
+                port,
+                rack,
+                unknown_tagged_fields,
+            },
+        ))
     }
 }
 
@@ -168,37 +183,37 @@ impl Message for MetadataResponseBroker {
 #[builder(default)]
 pub struct MetadataResponsePartition {
     /// The partition error, or 0 if there was no error.
-    /// 
+    ///
     /// Supported API versions: 0-12
     pub error_code: i16,
 
     /// The partition index.
-    /// 
+    ///
     /// Supported API versions: 0-12
     pub partition_index: i32,
 
     /// The ID of the leader broker.
-    /// 
+    ///
     /// Supported API versions: 0-12
     pub leader_id: super::BrokerId,
 
     /// The leader epoch of this partition.
-    /// 
+    ///
     /// Supported API versions: 7-12
     pub leader_epoch: i32,
 
     /// The set of all nodes that host this partition.
-    /// 
+    ///
     /// Supported API versions: 0-12
     pub replica_nodes: Vec<super::BrokerId>,
 
     /// The set of nodes that are in sync with the leader for this partition.
-    /// 
+    ///
     /// Supported API versions: 0-12
     pub isr_nodes: Vec<super::BrokerId>,
 
     /// The set of offline replicas of this partition.
-    /// 
+    ///
     /// Supported API versions: 5-12
     pub offline_replicas: Vec<super::BrokerId>,
 
@@ -209,7 +224,7 @@ pub struct MetadataResponsePartition {
 impl Builder for MetadataResponsePartition {
     type Builder = MetadataResponsePartitionBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         MetadataResponsePartitionBuilder::default()
     }
 }
@@ -242,7 +257,10 @@ impl Encodable for MetadataResponsePartition {
         if version >= 9 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -271,7 +289,8 @@ impl Encodable for MetadataResponsePartition {
         }
         if version >= 5 {
             if version >= 9 {
-                total_size += types::CompactArray(types::Int32).compute_size(&self.offline_replicas)?;
+                total_size +=
+                    types::CompactArray(types::Int32).compute_size(&self.offline_replicas)?;
             } else {
                 total_size += types::Array(types::Int32).compute_size(&self.offline_replicas)?;
             }
@@ -279,7 +298,10 @@ impl Encodable for MetadataResponsePartition {
         if version >= 9 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -368,27 +390,27 @@ impl Message for MetadataResponsePartition {
 #[builder(default)]
 pub struct MetadataResponseTopic {
     /// The topic error, or 0 if there was no error.
-    /// 
+    ///
     /// Supported API versions: 0-12
     pub error_code: i16,
 
     /// The topic id.
-    /// 
+    ///
     /// Supported API versions: 10-12
     pub topic_id: Uuid,
 
     /// True if the topic is internal.
-    /// 
+    ///
     /// Supported API versions: 1-12
     pub is_internal: bool,
 
     /// Each partition in the topic.
-    /// 
+    ///
     /// Supported API versions: 0-12
     pub partitions: Vec<MetadataResponsePartition>,
 
     /// 32-bit bitfield to represent authorized operations for this topic.
-    /// 
+    ///
     /// Supported API versions: 8-12
     pub topic_authorized_operations: i32,
 
@@ -399,14 +421,19 @@ pub struct MetadataResponseTopic {
 impl Builder for MetadataResponseTopic {
     type Builder = MetadataResponseTopicBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         MetadataResponseTopicBuilder::default()
     }
 }
 
 impl MapEncodable for MetadataResponseTopic {
     type Key = super::TopicName;
-    fn encode<B: ByteBufMut>(&self, key: &Self::Key, buf: &mut B, version: i16) -> Result<(), EncodeError> {
+    fn encode<B: ByteBufMut>(
+        &self,
+        key: &Self::Key,
+        buf: &mut B,
+        version: i16,
+    ) -> Result<(), EncodeError> {
         types::Int16.encode(buf, &self.error_code)?;
         if version >= 9 {
             types::CompactString.encode(buf, key)?;
@@ -428,13 +455,16 @@ impl MapEncodable for MetadataResponseTopic {
             types::Int32.encode(buf, &self.topic_authorized_operations)?;
         } else {
             if self.topic_authorized_operations != -2147483648 {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 9 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -458,7 +488,8 @@ impl MapEncodable for MetadataResponseTopic {
             total_size += types::Boolean.compute_size(&self.is_internal)?;
         }
         if version >= 9 {
-            total_size += types::CompactArray(types::Struct { version }).compute_size(&self.partitions)?;
+            total_size +=
+                types::CompactArray(types::Struct { version }).compute_size(&self.partitions)?;
         } else {
             total_size += types::Array(types::Struct { version }).compute_size(&self.partitions)?;
         }
@@ -466,13 +497,16 @@ impl MapEncodable for MetadataResponseTopic {
             total_size += types::Int32.compute_size(&self.topic_authorized_operations)?;
         } else {
             if self.topic_authorized_operations != -2147483648 {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 9 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -523,14 +557,17 @@ impl MapDecodable for MetadataResponseTopic {
                 unknown_tagged_fields.insert(tag as i32, unknown_value);
             }
         }
-        Ok((key_field, Self {
-            error_code,
-            topic_id,
-            is_internal,
-            partitions,
-            topic_authorized_operations,
-            unknown_tagged_fields,
-        }))
+        Ok((
+            key_field,
+            Self {
+                error_code,
+                topic_id,
+                is_internal,
+                partitions,
+                topic_authorized_operations,
+                unknown_tagged_fields,
+            },
+        ))
     }
 }
 
@@ -557,32 +594,32 @@ impl Message for MetadataResponseTopic {
 #[builder(default)]
 pub struct MetadataResponse {
     /// The duration in milliseconds for which the request was throttled due to a quota violation, or zero if the request did not violate any quota.
-    /// 
+    ///
     /// Supported API versions: 3-12
     pub throttle_time_ms: i32,
 
     /// Each broker in the response.
-    /// 
+    ///
     /// Supported API versions: 0-12
     pub brokers: indexmap::IndexMap<super::BrokerId, MetadataResponseBroker>,
 
     /// The cluster ID that responding broker belongs to.
-    /// 
+    ///
     /// Supported API versions: 2-12
     pub cluster_id: Option<StrBytes>,
 
     /// The ID of the controller broker.
-    /// 
+    ///
     /// Supported API versions: 1-12
     pub controller_id: super::BrokerId,
 
     /// Each topic in the response.
-    /// 
+    ///
     /// Supported API versions: 0-12
     pub topics: indexmap::IndexMap<super::TopicName, MetadataResponseTopic>,
 
     /// 32-bit bitfield to represent authorized operations for this cluster.
-    /// 
+    ///
     /// Supported API versions: 8-10
     pub cluster_authorized_operations: i32,
 
@@ -593,7 +630,7 @@ pub struct MetadataResponse {
 impl Builder for MetadataResponse {
     type Builder = MetadataResponseBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         MetadataResponseBuilder::default()
     }
 }
@@ -627,13 +664,16 @@ impl Encodable for MetadataResponse {
             types::Int32.encode(buf, &self.cluster_authorized_operations)?;
         } else {
             if self.cluster_authorized_operations != -2147483648 {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 9 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -648,7 +688,8 @@ impl Encodable for MetadataResponse {
             total_size += types::Int32.compute_size(&self.throttle_time_ms)?;
         }
         if version >= 9 {
-            total_size += types::CompactArray(types::Struct { version }).compute_size(&self.brokers)?;
+            total_size +=
+                types::CompactArray(types::Struct { version }).compute_size(&self.brokers)?;
         } else {
             total_size += types::Array(types::Struct { version }).compute_size(&self.brokers)?;
         }
@@ -663,7 +704,8 @@ impl Encodable for MetadataResponse {
             total_size += types::Int32.compute_size(&self.controller_id)?;
         }
         if version >= 9 {
-            total_size += types::CompactArray(types::Struct { version }).compute_size(&self.topics)?;
+            total_size +=
+                types::CompactArray(types::Struct { version }).compute_size(&self.topics)?;
         } else {
             total_size += types::Array(types::Struct { version }).compute_size(&self.topics)?;
         }
@@ -671,13 +713,16 @@ impl Encodable for MetadataResponse {
             total_size += types::Int32.compute_size(&self.cluster_authorized_operations)?;
         } else {
             if self.cluster_authorized_operations != -2147483648 {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 9 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -774,4 +819,3 @@ impl HeaderVersion for MetadataResponse {
         }
     }
 }
-

@@ -12,10 +12,11 @@ use log::error;
 use uuid::Uuid;
 
 use crate::protocol::{
-    Encodable, Decodable, MapEncodable, MapDecodable, Encoder, Decoder, EncodeError, DecodeError, Message, HeaderVersion, VersionRange,
-    types, write_unknown_tagged_fields, compute_unknown_tagged_fields_size, StrBytes, buf::{ByteBuf, ByteBufMut}, Builder
+    buf::{ByteBuf, ByteBufMut},
+    compute_unknown_tagged_fields_size, types, write_unknown_tagged_fields, Builder, Decodable,
+    DecodeError, Decoder, Encodable, EncodeError, Encoder, HeaderVersion, MapDecodable,
+    MapEncodable, Message, StrBytes, VersionRange,
 };
-
 
 /// Valid versions: 0
 #[non_exhaustive]
@@ -23,17 +24,17 @@ use crate::protocol::{
 #[builder(default)]
 pub struct DescribeClusterBroker {
     /// The broker hostname.
-    /// 
+    ///
     /// Supported API versions: 0
     pub host: StrBytes,
 
     /// The broker port.
-    /// 
+    ///
     /// Supported API versions: 0
     pub port: i32,
 
     /// The rack of the broker, or null if it has not been assigned to a rack.
-    /// 
+    ///
     /// Supported API versions: 0
     pub rack: Option<StrBytes>,
 
@@ -44,21 +45,29 @@ pub struct DescribeClusterBroker {
 impl Builder for DescribeClusterBroker {
     type Builder = DescribeClusterBrokerBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         DescribeClusterBrokerBuilder::default()
     }
 }
 
 impl MapEncodable for DescribeClusterBroker {
     type Key = super::BrokerId;
-    fn encode<B: ByteBufMut>(&self, key: &Self::Key, buf: &mut B, version: i16) -> Result<(), EncodeError> {
+    fn encode<B: ByteBufMut>(
+        &self,
+        key: &Self::Key,
+        buf: &mut B,
+        version: i16,
+    ) -> Result<(), EncodeError> {
         types::Int32.encode(buf, key)?;
         types::CompactString.encode(buf, &self.host)?;
         types::Int32.encode(buf, &self.port)?;
         types::CompactString.encode(buf, &self.rack)?;
         let num_tagged_fields = self.unknown_tagged_fields.len();
         if num_tagged_fields > std::u32::MAX as usize {
-            error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+            error!(
+                "Too many tagged fields to encode ({} fields)",
+                num_tagged_fields
+            );
             return Err(EncodeError);
         }
         types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -74,7 +83,10 @@ impl MapEncodable for DescribeClusterBroker {
         total_size += types::CompactString.compute_size(&self.rack)?;
         let num_tagged_fields = self.unknown_tagged_fields.len();
         if num_tagged_fields > std::u32::MAX as usize {
-            error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+            error!(
+                "Too many tagged fields to encode ({} fields)",
+                num_tagged_fields
+            );
             return Err(EncodeError);
         }
         total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -100,12 +112,15 @@ impl MapDecodable for DescribeClusterBroker {
             buf.try_copy_to_slice(&mut unknown_value)?;
             unknown_tagged_fields.insert(tag as i32, unknown_value);
         }
-        Ok((key_field, Self {
-            host,
-            port,
-            rack,
-            unknown_tagged_fields,
-        }))
+        Ok((
+            key_field,
+            Self {
+                host,
+                port,
+                rack,
+                unknown_tagged_fields,
+            },
+        ))
     }
 }
 
@@ -130,37 +145,37 @@ impl Message for DescribeClusterBroker {
 #[builder(default)]
 pub struct DescribeClusterResponse {
     /// The duration in milliseconds for which the request was throttled due to a quota violation, or zero if the request did not violate any quota.
-    /// 
+    ///
     /// Supported API versions: 0
     pub throttle_time_ms: i32,
 
     /// The top-level error code, or 0 if there was no error
-    /// 
+    ///
     /// Supported API versions: 0
     pub error_code: i16,
 
     /// The top-level error message, or null if there was no error.
-    /// 
+    ///
     /// Supported API versions: 0
     pub error_message: Option<StrBytes>,
 
     /// The cluster ID that responding broker belongs to.
-    /// 
+    ///
     /// Supported API versions: 0
     pub cluster_id: StrBytes,
 
     /// The ID of the controller broker.
-    /// 
+    ///
     /// Supported API versions: 0
     pub controller_id: super::BrokerId,
 
     /// Each broker in the response.
-    /// 
+    ///
     /// Supported API versions: 0
     pub brokers: indexmap::IndexMap<super::BrokerId, DescribeClusterBroker>,
 
     /// 32-bit bitfield to represent authorized operations for this cluster.
-    /// 
+    ///
     /// Supported API versions: 0
     pub cluster_authorized_operations: i32,
 
@@ -171,7 +186,7 @@ pub struct DescribeClusterResponse {
 impl Builder for DescribeClusterResponse {
     type Builder = DescribeClusterResponseBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         DescribeClusterResponseBuilder::default()
     }
 }
@@ -187,7 +202,10 @@ impl Encodable for DescribeClusterResponse {
         types::Int32.encode(buf, &self.cluster_authorized_operations)?;
         let num_tagged_fields = self.unknown_tagged_fields.len();
         if num_tagged_fields > std::u32::MAX as usize {
-            error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+            error!(
+                "Too many tagged fields to encode ({} fields)",
+                num_tagged_fields
+            );
             return Err(EncodeError);
         }
         types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -206,7 +224,10 @@ impl Encodable for DescribeClusterResponse {
         total_size += types::Int32.compute_size(&self.cluster_authorized_operations)?;
         let num_tagged_fields = self.unknown_tagged_fields.len();
         if num_tagged_fields > std::u32::MAX as usize {
-            error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+            error!(
+                "Too many tagged fields to encode ({} fields)",
+                num_tagged_fields
+            );
             return Err(EncodeError);
         }
         total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -271,4 +292,3 @@ impl HeaderVersion for DescribeClusterResponse {
         1
     }
 }
-

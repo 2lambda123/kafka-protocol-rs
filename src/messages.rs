@@ -3,7 +3,7 @@
 //! These messages are generated programmatically. See the [Kafka's protocol documentation](https://kafka.apache.org/protocol.html) for more information about a given message type.
 // WARNING: the items of this module are generated and should not be edited directly.
 
-use crate::protocol::{NewType, Request, StrBytes, HeaderVersion};
+use crate::protocol::{HeaderVersion, NewType, Request, StrBytes};
 use std::convert::TryFrom;
 
 pub mod add_offsets_to_txn_request;
@@ -961,20 +961,36 @@ impl ApiKey {
             ApiKey::DescribeLogDirsKey => DescribeLogDirsRequest::header_version(version),
             ApiKey::SaslAuthenticateKey => SaslAuthenticateRequest::header_version(version),
             ApiKey::CreatePartitionsKey => CreatePartitionsRequest::header_version(version),
-            ApiKey::CreateDelegationTokenKey => CreateDelegationTokenRequest::header_version(version),
+            ApiKey::CreateDelegationTokenKey => {
+                CreateDelegationTokenRequest::header_version(version)
+            }
             ApiKey::RenewDelegationTokenKey => RenewDelegationTokenRequest::header_version(version),
-            ApiKey::ExpireDelegationTokenKey => ExpireDelegationTokenRequest::header_version(version),
-            ApiKey::DescribeDelegationTokenKey => DescribeDelegationTokenRequest::header_version(version),
+            ApiKey::ExpireDelegationTokenKey => {
+                ExpireDelegationTokenRequest::header_version(version)
+            }
+            ApiKey::DescribeDelegationTokenKey => {
+                DescribeDelegationTokenRequest::header_version(version)
+            }
             ApiKey::DeleteGroupsKey => DeleteGroupsRequest::header_version(version),
             ApiKey::ElectLeadersKey => ElectLeadersRequest::header_version(version),
-            ApiKey::IncrementalAlterConfigsKey => IncrementalAlterConfigsRequest::header_version(version),
-            ApiKey::AlterPartitionReassignmentsKey => AlterPartitionReassignmentsRequest::header_version(version),
-            ApiKey::ListPartitionReassignmentsKey => ListPartitionReassignmentsRequest::header_version(version),
+            ApiKey::IncrementalAlterConfigsKey => {
+                IncrementalAlterConfigsRequest::header_version(version)
+            }
+            ApiKey::AlterPartitionReassignmentsKey => {
+                AlterPartitionReassignmentsRequest::header_version(version)
+            }
+            ApiKey::ListPartitionReassignmentsKey => {
+                ListPartitionReassignmentsRequest::header_version(version)
+            }
             ApiKey::OffsetDeleteKey => OffsetDeleteRequest::header_version(version),
             ApiKey::DescribeClientQuotasKey => DescribeClientQuotasRequest::header_version(version),
             ApiKey::AlterClientQuotasKey => AlterClientQuotasRequest::header_version(version),
-            ApiKey::DescribeUserScramCredentialsKey => DescribeUserScramCredentialsRequest::header_version(version),
-            ApiKey::AlterUserScramCredentialsKey => AlterUserScramCredentialsRequest::header_version(version),
+            ApiKey::DescribeUserScramCredentialsKey => {
+                DescribeUserScramCredentialsRequest::header_version(version)
+            }
+            ApiKey::AlterUserScramCredentialsKey => {
+                AlterUserScramCredentialsRequest::header_version(version)
+            }
             ApiKey::VoteKey => VoteRequest::header_version(version),
             ApiKey::BeginQuorumEpochKey => BeginQuorumEpochRequest::header_version(version),
             ApiKey::EndQuorumEpochKey => EndQuorumEpochRequest::header_version(version),
@@ -1019,7 +1035,9 @@ impl ApiKey {
             ApiKey::DeleteTopicsKey => DeleteTopicsResponse::header_version(version),
             ApiKey::DeleteRecordsKey => DeleteRecordsResponse::header_version(version),
             ApiKey::InitProducerIdKey => InitProducerIdResponse::header_version(version),
-            ApiKey::OffsetForLeaderEpochKey => OffsetForLeaderEpochResponse::header_version(version),
+            ApiKey::OffsetForLeaderEpochKey => {
+                OffsetForLeaderEpochResponse::header_version(version)
+            }
             ApiKey::AddPartitionsToTxnKey => AddPartitionsToTxnResponse::header_version(version),
             ApiKey::AddOffsetsToTxnKey => AddOffsetsToTxnResponse::header_version(version),
             ApiKey::EndTxnKey => EndTxnResponse::header_version(version),
@@ -1034,20 +1052,40 @@ impl ApiKey {
             ApiKey::DescribeLogDirsKey => DescribeLogDirsResponse::header_version(version),
             ApiKey::SaslAuthenticateKey => SaslAuthenticateResponse::header_version(version),
             ApiKey::CreatePartitionsKey => CreatePartitionsResponse::header_version(version),
-            ApiKey::CreateDelegationTokenKey => CreateDelegationTokenResponse::header_version(version),
-            ApiKey::RenewDelegationTokenKey => RenewDelegationTokenResponse::header_version(version),
-            ApiKey::ExpireDelegationTokenKey => ExpireDelegationTokenResponse::header_version(version),
-            ApiKey::DescribeDelegationTokenKey => DescribeDelegationTokenResponse::header_version(version),
+            ApiKey::CreateDelegationTokenKey => {
+                CreateDelegationTokenResponse::header_version(version)
+            }
+            ApiKey::RenewDelegationTokenKey => {
+                RenewDelegationTokenResponse::header_version(version)
+            }
+            ApiKey::ExpireDelegationTokenKey => {
+                ExpireDelegationTokenResponse::header_version(version)
+            }
+            ApiKey::DescribeDelegationTokenKey => {
+                DescribeDelegationTokenResponse::header_version(version)
+            }
             ApiKey::DeleteGroupsKey => DeleteGroupsResponse::header_version(version),
             ApiKey::ElectLeadersKey => ElectLeadersResponse::header_version(version),
-            ApiKey::IncrementalAlterConfigsKey => IncrementalAlterConfigsResponse::header_version(version),
-            ApiKey::AlterPartitionReassignmentsKey => AlterPartitionReassignmentsResponse::header_version(version),
-            ApiKey::ListPartitionReassignmentsKey => ListPartitionReassignmentsResponse::header_version(version),
+            ApiKey::IncrementalAlterConfigsKey => {
+                IncrementalAlterConfigsResponse::header_version(version)
+            }
+            ApiKey::AlterPartitionReassignmentsKey => {
+                AlterPartitionReassignmentsResponse::header_version(version)
+            }
+            ApiKey::ListPartitionReassignmentsKey => {
+                ListPartitionReassignmentsResponse::header_version(version)
+            }
             ApiKey::OffsetDeleteKey => OffsetDeleteResponse::header_version(version),
-            ApiKey::DescribeClientQuotasKey => DescribeClientQuotasResponse::header_version(version),
+            ApiKey::DescribeClientQuotasKey => {
+                DescribeClientQuotasResponse::header_version(version)
+            }
             ApiKey::AlterClientQuotasKey => AlterClientQuotasResponse::header_version(version),
-            ApiKey::DescribeUserScramCredentialsKey => DescribeUserScramCredentialsResponse::header_version(version),
-            ApiKey::AlterUserScramCredentialsKey => AlterUserScramCredentialsResponse::header_version(version),
+            ApiKey::DescribeUserScramCredentialsKey => {
+                DescribeUserScramCredentialsResponse::header_version(version)
+            }
+            ApiKey::AlterUserScramCredentialsKey => {
+                AlterUserScramCredentialsResponse::header_version(version)
+            }
             ApiKey::VoteKey => VoteResponse::header_version(version),
             ApiKey::BeginQuorumEpochKey => BeginQuorumEpochResponse::header_version(version),
             ApiKey::EndQuorumEpochKey => EndQuorumEpochResponse::header_version(version),
@@ -1061,7 +1099,9 @@ impl ApiKey {
             ApiKey::BrokerRegistrationKey => BrokerRegistrationResponse::header_version(version),
             ApiKey::BrokerHeartbeatKey => BrokerHeartbeatResponse::header_version(version),
             ApiKey::UnregisterBrokerKey => UnregisterBrokerResponse::header_version(version),
-            ApiKey::DescribeTransactionsKey => DescribeTransactionsResponse::header_version(version),
+            ApiKey::DescribeTransactionsKey => {
+                DescribeTransactionsResponse::header_version(version)
+            }
             ApiKey::ListTransactionsKey => ListTransactionsResponse::header_version(version),
             ApiKey::AllocateProducerIdsKey => AllocateProducerIdsResponse::header_version(version),
         }
@@ -1110,20 +1150,36 @@ impl TryFrom<i16> for ApiKey {
             x if x == ApiKey::DescribeLogDirsKey as i16 => Ok(ApiKey::DescribeLogDirsKey),
             x if x == ApiKey::SaslAuthenticateKey as i16 => Ok(ApiKey::SaslAuthenticateKey),
             x if x == ApiKey::CreatePartitionsKey as i16 => Ok(ApiKey::CreatePartitionsKey),
-            x if x == ApiKey::CreateDelegationTokenKey as i16 => Ok(ApiKey::CreateDelegationTokenKey),
+            x if x == ApiKey::CreateDelegationTokenKey as i16 => {
+                Ok(ApiKey::CreateDelegationTokenKey)
+            }
             x if x == ApiKey::RenewDelegationTokenKey as i16 => Ok(ApiKey::RenewDelegationTokenKey),
-            x if x == ApiKey::ExpireDelegationTokenKey as i16 => Ok(ApiKey::ExpireDelegationTokenKey),
-            x if x == ApiKey::DescribeDelegationTokenKey as i16 => Ok(ApiKey::DescribeDelegationTokenKey),
+            x if x == ApiKey::ExpireDelegationTokenKey as i16 => {
+                Ok(ApiKey::ExpireDelegationTokenKey)
+            }
+            x if x == ApiKey::DescribeDelegationTokenKey as i16 => {
+                Ok(ApiKey::DescribeDelegationTokenKey)
+            }
             x if x == ApiKey::DeleteGroupsKey as i16 => Ok(ApiKey::DeleteGroupsKey),
             x if x == ApiKey::ElectLeadersKey as i16 => Ok(ApiKey::ElectLeadersKey),
-            x if x == ApiKey::IncrementalAlterConfigsKey as i16 => Ok(ApiKey::IncrementalAlterConfigsKey),
-            x if x == ApiKey::AlterPartitionReassignmentsKey as i16 => Ok(ApiKey::AlterPartitionReassignmentsKey),
-            x if x == ApiKey::ListPartitionReassignmentsKey as i16 => Ok(ApiKey::ListPartitionReassignmentsKey),
+            x if x == ApiKey::IncrementalAlterConfigsKey as i16 => {
+                Ok(ApiKey::IncrementalAlterConfigsKey)
+            }
+            x if x == ApiKey::AlterPartitionReassignmentsKey as i16 => {
+                Ok(ApiKey::AlterPartitionReassignmentsKey)
+            }
+            x if x == ApiKey::ListPartitionReassignmentsKey as i16 => {
+                Ok(ApiKey::ListPartitionReassignmentsKey)
+            }
             x if x == ApiKey::OffsetDeleteKey as i16 => Ok(ApiKey::OffsetDeleteKey),
             x if x == ApiKey::DescribeClientQuotasKey as i16 => Ok(ApiKey::DescribeClientQuotasKey),
             x if x == ApiKey::AlterClientQuotasKey as i16 => Ok(ApiKey::AlterClientQuotasKey),
-            x if x == ApiKey::DescribeUserScramCredentialsKey as i16 => Ok(ApiKey::DescribeUserScramCredentialsKey),
-            x if x == ApiKey::AlterUserScramCredentialsKey as i16 => Ok(ApiKey::AlterUserScramCredentialsKey),
+            x if x == ApiKey::DescribeUserScramCredentialsKey as i16 => {
+                Ok(ApiKey::DescribeUserScramCredentialsKey)
+            }
+            x if x == ApiKey::AlterUserScramCredentialsKey as i16 => {
+                Ok(ApiKey::AlterUserScramCredentialsKey)
+            }
             x if x == ApiKey::VoteKey as i16 => Ok(ApiKey::VoteKey),
             x if x == ApiKey::BeginQuorumEpochKey as i16 => Ok(ApiKey::BeginQuorumEpochKey),
             x if x == ApiKey::EndQuorumEpochKey as i16 => Ok(ApiKey::EndQuorumEpochKey),
@@ -1434,23 +1490,35 @@ pub enum ResponseKind {
 pub struct BrokerId(pub i32);
 
 impl From<i32> for BrokerId {
-    fn from(other: i32) -> Self { Self(other) }
+    fn from(other: i32) -> Self {
+        Self(other)
+    }
 }
 impl From<BrokerId> for i32 {
-    fn from(other: BrokerId) -> Self { other.0 }
+    fn from(other: BrokerId) -> Self {
+        other.0
+    }
 }
 impl std::borrow::Borrow<i32> for BrokerId {
-    fn borrow(&self) -> &i32 { &self.0 }
+    fn borrow(&self) -> &i32 {
+        &self.0
+    }
 }
 impl std::ops::Deref for BrokerId {
     type Target = i32;
-    fn deref(&self) -> &Self::Target { &self.0 }
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
 }
 impl std::cmp::PartialEq<i32> for BrokerId {
-    fn eq(&self, other: &i32) -> bool { &self.0 == other }
+    fn eq(&self, other: &i32) -> bool {
+        &self.0 == other
+    }
 }
 impl std::cmp::PartialEq<BrokerId> for i32 {
-    fn eq(&self, other: &BrokerId) -> bool { self == &other.0 }
+    fn eq(&self, other: &BrokerId) -> bool {
+        self == &other.0
+    }
 }
 impl NewType<i32> for BrokerId {}
 
@@ -1459,23 +1527,35 @@ impl NewType<i32> for BrokerId {}
 pub struct GroupId(pub StrBytes);
 
 impl From<StrBytes> for GroupId {
-    fn from(other: StrBytes) -> Self { Self(other) }
+    fn from(other: StrBytes) -> Self {
+        Self(other)
+    }
 }
 impl From<GroupId> for StrBytes {
-    fn from(other: GroupId) -> Self { other.0 }
+    fn from(other: GroupId) -> Self {
+        other.0
+    }
 }
 impl std::borrow::Borrow<StrBytes> for GroupId {
-    fn borrow(&self) -> &StrBytes { &self.0 }
+    fn borrow(&self) -> &StrBytes {
+        &self.0
+    }
 }
 impl std::ops::Deref for GroupId {
     type Target = StrBytes;
-    fn deref(&self) -> &Self::Target { &self.0 }
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
 }
 impl std::cmp::PartialEq<StrBytes> for GroupId {
-    fn eq(&self, other: &StrBytes) -> bool { &self.0 == other }
+    fn eq(&self, other: &StrBytes) -> bool {
+        &self.0 == other
+    }
 }
 impl std::cmp::PartialEq<GroupId> for StrBytes {
-    fn eq(&self, other: &GroupId) -> bool { self == &other.0 }
+    fn eq(&self, other: &GroupId) -> bool {
+        self == &other.0
+    }
 }
 impl NewType<StrBytes> for GroupId {}
 
@@ -1484,23 +1564,35 @@ impl NewType<StrBytes> for GroupId {}
 pub struct ProducerId(pub i64);
 
 impl From<i64> for ProducerId {
-    fn from(other: i64) -> Self { Self(other) }
+    fn from(other: i64) -> Self {
+        Self(other)
+    }
 }
 impl From<ProducerId> for i64 {
-    fn from(other: ProducerId) -> Self { other.0 }
+    fn from(other: ProducerId) -> Self {
+        other.0
+    }
 }
 impl std::borrow::Borrow<i64> for ProducerId {
-    fn borrow(&self) -> &i64 { &self.0 }
+    fn borrow(&self) -> &i64 {
+        &self.0
+    }
 }
 impl std::ops::Deref for ProducerId {
     type Target = i64;
-    fn deref(&self) -> &Self::Target { &self.0 }
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
 }
 impl std::cmp::PartialEq<i64> for ProducerId {
-    fn eq(&self, other: &i64) -> bool { &self.0 == other }
+    fn eq(&self, other: &i64) -> bool {
+        &self.0 == other
+    }
 }
 impl std::cmp::PartialEq<ProducerId> for i64 {
-    fn eq(&self, other: &ProducerId) -> bool { self == &other.0 }
+    fn eq(&self, other: &ProducerId) -> bool {
+        self == &other.0
+    }
 }
 impl NewType<i64> for ProducerId {}
 
@@ -1509,23 +1601,35 @@ impl NewType<i64> for ProducerId {}
 pub struct TopicName(pub StrBytes);
 
 impl From<StrBytes> for TopicName {
-    fn from(other: StrBytes) -> Self { Self(other) }
+    fn from(other: StrBytes) -> Self {
+        Self(other)
+    }
 }
 impl From<TopicName> for StrBytes {
-    fn from(other: TopicName) -> Self { other.0 }
+    fn from(other: TopicName) -> Self {
+        other.0
+    }
 }
 impl std::borrow::Borrow<StrBytes> for TopicName {
-    fn borrow(&self) -> &StrBytes { &self.0 }
+    fn borrow(&self) -> &StrBytes {
+        &self.0
+    }
 }
 impl std::ops::Deref for TopicName {
     type Target = StrBytes;
-    fn deref(&self) -> &Self::Target { &self.0 }
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
 }
 impl std::cmp::PartialEq<StrBytes> for TopicName {
-    fn eq(&self, other: &StrBytes) -> bool { &self.0 == other }
+    fn eq(&self, other: &StrBytes) -> bool {
+        &self.0 == other
+    }
 }
 impl std::cmp::PartialEq<TopicName> for StrBytes {
-    fn eq(&self, other: &TopicName) -> bool { self == &other.0 }
+    fn eq(&self, other: &TopicName) -> bool {
+        self == &other.0
+    }
 }
 impl NewType<StrBytes> for TopicName {}
 
@@ -1534,23 +1638,34 @@ impl NewType<StrBytes> for TopicName {}
 pub struct TransactionalId(pub StrBytes);
 
 impl From<StrBytes> for TransactionalId {
-    fn from(other: StrBytes) -> Self { Self(other) }
+    fn from(other: StrBytes) -> Self {
+        Self(other)
+    }
 }
 impl From<TransactionalId> for StrBytes {
-    fn from(other: TransactionalId) -> Self { other.0 }
+    fn from(other: TransactionalId) -> Self {
+        other.0
+    }
 }
 impl std::borrow::Borrow<StrBytes> for TransactionalId {
-    fn borrow(&self) -> &StrBytes { &self.0 }
+    fn borrow(&self) -> &StrBytes {
+        &self.0
+    }
 }
 impl std::ops::Deref for TransactionalId {
     type Target = StrBytes;
-    fn deref(&self) -> &Self::Target { &self.0 }
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
 }
 impl std::cmp::PartialEq<StrBytes> for TransactionalId {
-    fn eq(&self, other: &StrBytes) -> bool { &self.0 == other }
+    fn eq(&self, other: &StrBytes) -> bool {
+        &self.0 == other
+    }
 }
 impl std::cmp::PartialEq<TransactionalId> for StrBytes {
-    fn eq(&self, other: &TransactionalId) -> bool { self == &other.0 }
+    fn eq(&self, other: &TransactionalId) -> bool {
+        self == &other.0
+    }
 }
 impl NewType<StrBytes> for TransactionalId {}
-

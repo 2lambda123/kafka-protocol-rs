@@ -12,10 +12,11 @@ use log::error;
 use uuid::Uuid;
 
 use crate::protocol::{
-    Encodable, Decodable, MapEncodable, MapDecodable, Encoder, Decoder, EncodeError, DecodeError, Message, HeaderVersion, VersionRange,
-    types, write_unknown_tagged_fields, compute_unknown_tagged_fields_size, StrBytes, buf::{ByteBuf, ByteBufMut}, Builder
+    buf::{ByteBuf, ByteBufMut},
+    compute_unknown_tagged_fields_size, types, write_unknown_tagged_fields, Builder, Decodable,
+    DecodeError, Decoder, Encodable, EncodeError, Encoder, HeaderVersion, MapDecodable,
+    MapEncodable, Message, StrBytes, VersionRange,
 };
-
 
 /// Valid versions: 0
 #[non_exhaustive]
@@ -23,27 +24,27 @@ use crate::protocol::{
 #[builder(default)]
 pub struct BrokerHeartbeatRequest {
     /// The broker ID.
-    /// 
+    ///
     /// Supported API versions: 0
     pub broker_id: super::BrokerId,
 
     /// The broker epoch.
-    /// 
+    ///
     /// Supported API versions: 0
     pub broker_epoch: i64,
 
     /// The highest metadata offset which the broker has reached.
-    /// 
+    ///
     /// Supported API versions: 0
     pub current_metadata_offset: i64,
 
     /// True if the broker wants to be fenced, false otherwise.
-    /// 
+    ///
     /// Supported API versions: 0
     pub want_fence: bool,
 
     /// True if the broker wants to be shut down, false otherwise.
-    /// 
+    ///
     /// Supported API versions: 0
     pub want_shut_down: bool,
 
@@ -54,7 +55,7 @@ pub struct BrokerHeartbeatRequest {
 impl Builder for BrokerHeartbeatRequest {
     type Builder = BrokerHeartbeatRequestBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         BrokerHeartbeatRequestBuilder::default()
     }
 }
@@ -68,7 +69,10 @@ impl Encodable for BrokerHeartbeatRequest {
         types::Boolean.encode(buf, &self.want_shut_down)?;
         let num_tagged_fields = self.unknown_tagged_fields.len();
         if num_tagged_fields > std::u32::MAX as usize {
-            error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+            error!(
+                "Too many tagged fields to encode ({} fields)",
+                num_tagged_fields
+            );
             return Err(EncodeError);
         }
         types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -85,7 +89,10 @@ impl Encodable for BrokerHeartbeatRequest {
         total_size += types::Boolean.compute_size(&self.want_shut_down)?;
         let num_tagged_fields = self.unknown_tagged_fields.len();
         if num_tagged_fields > std::u32::MAX as usize {
-            error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+            error!(
+                "Too many tagged fields to encode ({} fields)",
+                num_tagged_fields
+            );
             return Err(EncodeError);
         }
         total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -144,4 +151,3 @@ impl HeaderVersion for BrokerHeartbeatRequest {
         2
     }
 }
-

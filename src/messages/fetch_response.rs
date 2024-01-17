@@ -12,23 +12,24 @@ use log::error;
 use uuid::Uuid;
 
 use crate::protocol::{
-    Encodable, Decodable, MapEncodable, MapDecodable, Encoder, Decoder, EncodeError, DecodeError, Message, HeaderVersion, VersionRange,
-    types, write_unknown_tagged_fields, compute_unknown_tagged_fields_size, StrBytes, buf::{ByteBuf, ByteBufMut}, Builder
+    buf::{ByteBuf, ByteBufMut},
+    compute_unknown_tagged_fields_size, types, write_unknown_tagged_fields, Builder, Decodable,
+    DecodeError, Decoder, Encodable, EncodeError, Encoder, HeaderVersion, MapDecodable,
+    MapEncodable, Message, StrBytes, VersionRange,
 };
-
 
 /// Valid versions: 0-13
 #[non_exhaustive]
 #[derive(Debug, Clone, PartialEq, derive_builder::Builder)]
 #[builder(default)]
 pub struct EpochEndOffset {
-    /// 
-    /// 
+    ///
+    ///
     /// Supported API versions: 12-13
     pub epoch: i32,
 
-    /// 
-    /// 
+    ///
+    ///
     /// Supported API versions: 12-13
     pub end_offset: i64,
 
@@ -39,7 +40,7 @@ pub struct EpochEndOffset {
 impl Builder for EpochEndOffset {
     type Builder = EpochEndOffsetBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         EpochEndOffsetBuilder::default()
     }
 }
@@ -50,20 +51,23 @@ impl Encodable for EpochEndOffset {
             types::Int32.encode(buf, &self.epoch)?;
         } else {
             if self.epoch != -1 {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 12 {
             types::Int64.encode(buf, &self.end_offset)?;
         } else {
             if self.end_offset != -1 {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 12 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -78,20 +82,23 @@ impl Encodable for EpochEndOffset {
             total_size += types::Int32.compute_size(&self.epoch)?;
         } else {
             if self.epoch != -1 {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 12 {
             total_size += types::Int64.compute_size(&self.end_offset)?;
         } else {
             if self.end_offset != -1 {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 12 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -153,12 +160,12 @@ impl Message for EpochEndOffset {
 #[builder(default)]
 pub struct LeaderIdAndEpoch {
     /// The ID of the current leader or -1 if the leader is unknown.
-    /// 
+    ///
     /// Supported API versions: 12-13
     pub leader_id: super::BrokerId,
 
     /// The latest known leader epoch
-    /// 
+    ///
     /// Supported API versions: 12-13
     pub leader_epoch: i32,
 
@@ -169,7 +176,7 @@ pub struct LeaderIdAndEpoch {
 impl Builder for LeaderIdAndEpoch {
     type Builder = LeaderIdAndEpochBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         LeaderIdAndEpochBuilder::default()
     }
 }
@@ -180,20 +187,23 @@ impl Encodable for LeaderIdAndEpoch {
             types::Int32.encode(buf, &self.leader_id)?;
         } else {
             if self.leader_id != -1 {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 12 {
             types::Int32.encode(buf, &self.leader_epoch)?;
         } else {
             if self.leader_epoch != -1 {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 12 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -208,20 +218,23 @@ impl Encodable for LeaderIdAndEpoch {
             total_size += types::Int32.compute_size(&self.leader_id)?;
         } else {
             if self.leader_id != -1 {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 12 {
             total_size += types::Int32.compute_size(&self.leader_epoch)?;
         } else {
             if self.leader_epoch != -1 {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 12 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -282,13 +295,13 @@ impl Message for LeaderIdAndEpoch {
 #[derive(Debug, Clone, PartialEq, derive_builder::Builder)]
 #[builder(default)]
 pub struct SnapshotId {
-    /// 
-    /// 
+    ///
+    ///
     /// Supported API versions: 0-13
     pub end_offset: i64,
 
-    /// 
-    /// 
+    ///
+    ///
     /// Supported API versions: 0-13
     pub epoch: i32,
 
@@ -299,7 +312,7 @@ pub struct SnapshotId {
 impl Builder for SnapshotId {
     type Builder = SnapshotIdBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         SnapshotIdBuilder::default()
     }
 }
@@ -311,7 +324,10 @@ impl Encodable for SnapshotId {
         if version >= 12 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -327,7 +343,10 @@ impl Encodable for SnapshotId {
         if version >= 12 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -381,12 +400,12 @@ impl Message for SnapshotId {
 #[builder(default)]
 pub struct AbortedTransaction {
     /// The producer id associated with the aborted transaction.
-    /// 
+    ///
     /// Supported API versions: 4-13
     pub producer_id: super::ProducerId,
 
     /// The first offset in the aborted transaction.
-    /// 
+    ///
     /// Supported API versions: 4-13
     pub first_offset: i64,
 
@@ -397,7 +416,7 @@ pub struct AbortedTransaction {
 impl Builder for AbortedTransaction {
     type Builder = AbortedTransactionBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         AbortedTransactionBuilder::default()
     }
 }
@@ -408,20 +427,23 @@ impl Encodable for AbortedTransaction {
             types::Int64.encode(buf, &self.producer_id)?;
         } else {
             if self.producer_id != 0 {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 4 {
             types::Int64.encode(buf, &self.first_offset)?;
         } else {
             if self.first_offset != 0 {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 12 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -436,20 +458,23 @@ impl Encodable for AbortedTransaction {
             total_size += types::Int64.compute_size(&self.producer_id)?;
         } else {
             if self.producer_id != 0 {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 4 {
             total_size += types::Int64.compute_size(&self.first_offset)?;
         } else {
             if self.first_offset != 0 {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 12 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -511,57 +536,57 @@ impl Message for AbortedTransaction {
 #[builder(default)]
 pub struct PartitionData {
     /// The partition index.
-    /// 
+    ///
     /// Supported API versions: 0-13
     pub partition_index: i32,
 
     /// The error code, or 0 if there was no fetch error.
-    /// 
+    ///
     /// Supported API versions: 0-13
     pub error_code: i16,
 
     /// The current high water mark.
-    /// 
+    ///
     /// Supported API versions: 0-13
     pub high_watermark: i64,
 
     /// The last stable offset (or LSO) of the partition. This is the last offset such that the state of all transactional records prior to this offset have been decided (ABORTED or COMMITTED)
-    /// 
+    ///
     /// Supported API versions: 4-13
     pub last_stable_offset: i64,
 
     /// The current log start offset.
-    /// 
+    ///
     /// Supported API versions: 5-13
     pub log_start_offset: i64,
 
     /// In case divergence is detected based on the `LastFetchedEpoch` and `FetchOffset` in the request, this field indicates the largest epoch and its end offset such that subsequent records are known to diverge
-    /// 
+    ///
     /// Supported API versions: 12-13
     pub diverging_epoch: EpochEndOffset,
 
-    /// 
-    /// 
+    ///
+    ///
     /// Supported API versions: 12-13
     pub current_leader: LeaderIdAndEpoch,
 
     /// In the case of fetching an offset less than the LogStartOffset, this is the end offset and epoch that should be used in the FetchSnapshot request.
-    /// 
+    ///
     /// Supported API versions: 12-13
     pub snapshot_id: SnapshotId,
 
     /// The aborted transactions.
-    /// 
+    ///
     /// Supported API versions: 4-13
     pub aborted_transactions: Option<Vec<AbortedTransaction>>,
 
     /// The preferred read replica for the consumer to use on its next fetch request
-    /// 
+    ///
     /// Supported API versions: 11-13
     pub preferred_read_replica: super::BrokerId,
 
     /// The record data.
-    /// 
+    ///
     /// Supported API versions: 0-13
     pub records: Option<Bytes>,
 
@@ -572,7 +597,7 @@ pub struct PartitionData {
 impl Builder for PartitionData {
     type Builder = PartitionDataBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         PartitionDataBuilder::default()
     }
 }
@@ -590,7 +615,8 @@ impl Encodable for PartitionData {
         }
         if version >= 4 {
             if version >= 12 {
-                types::CompactArray(types::Struct { version }).encode(buf, &self.aborted_transactions)?;
+                types::CompactArray(types::Struct { version })
+                    .encode(buf, &self.aborted_transactions)?;
             } else {
                 types::Array(types::Struct { version }).encode(buf, &self.aborted_transactions)?;
             }
@@ -599,7 +625,7 @@ impl Encodable for PartitionData {
             types::Int32.encode(buf, &self.preferred_read_replica)?;
         } else {
             if self.preferred_read_replica != -1 {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 12 {
@@ -619,14 +645,21 @@ impl Encodable for PartitionData {
                 num_tagged_fields += 1;
             }
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
             if &self.diverging_epoch != &Default::default() {
-                let computed_size = types::Struct { version }.compute_size(&self.diverging_epoch)?;
+                let computed_size =
+                    types::Struct { version }.compute_size(&self.diverging_epoch)?;
                 if computed_size > std::u32::MAX as usize {
-                    error!("Tagged field is too large to encode ({} bytes)", computed_size);
+                    error!(
+                        "Tagged field is too large to encode ({} bytes)",
+                        computed_size
+                    );
                     return Err(EncodeError);
                 }
                 types::UnsignedVarInt.encode(buf, 0)?;
@@ -636,7 +669,10 @@ impl Encodable for PartitionData {
             if &self.current_leader != &Default::default() {
                 let computed_size = types::Struct { version }.compute_size(&self.current_leader)?;
                 if computed_size > std::u32::MAX as usize {
-                    error!("Tagged field is too large to encode ({} bytes)", computed_size);
+                    error!(
+                        "Tagged field is too large to encode ({} bytes)",
+                        computed_size
+                    );
                     return Err(EncodeError);
                 }
                 types::UnsignedVarInt.encode(buf, 1)?;
@@ -646,7 +682,10 @@ impl Encodable for PartitionData {
             if &self.snapshot_id != &Default::default() {
                 let computed_size = types::Struct { version }.compute_size(&self.snapshot_id)?;
                 if computed_size > std::u32::MAX as usize {
-                    error!("Tagged field is too large to encode ({} bytes)", computed_size);
+                    error!(
+                        "Tagged field is too large to encode ({} bytes)",
+                        computed_size
+                    );
                     return Err(EncodeError);
                 }
                 types::UnsignedVarInt.encode(buf, 2)?;
@@ -671,16 +710,18 @@ impl Encodable for PartitionData {
         }
         if version >= 4 {
             if version >= 12 {
-                total_size += types::CompactArray(types::Struct { version }).compute_size(&self.aborted_transactions)?;
+                total_size += types::CompactArray(types::Struct { version })
+                    .compute_size(&self.aborted_transactions)?;
             } else {
-                total_size += types::Array(types::Struct { version }).compute_size(&self.aborted_transactions)?;
+                total_size += types::Array(types::Struct { version })
+                    .compute_size(&self.aborted_transactions)?;
             }
         }
         if version >= 11 {
             total_size += types::Int32.compute_size(&self.preferred_read_replica)?;
         } else {
             if self.preferred_read_replica != -1 {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 12 {
@@ -700,14 +741,21 @@ impl Encodable for PartitionData {
                 num_tagged_fields += 1;
             }
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
             if &self.diverging_epoch != &Default::default() {
-                let computed_size = types::Struct { version }.compute_size(&self.diverging_epoch)?;
+                let computed_size =
+                    types::Struct { version }.compute_size(&self.diverging_epoch)?;
                 if computed_size > std::u32::MAX as usize {
-                    error!("Tagged field is too large to encode ({} bytes)", computed_size);
+                    error!(
+                        "Tagged field is too large to encode ({} bytes)",
+                        computed_size
+                    );
                     return Err(EncodeError);
                 }
                 total_size += types::UnsignedVarInt.compute_size(0)?;
@@ -717,7 +765,10 @@ impl Encodable for PartitionData {
             if &self.current_leader != &Default::default() {
                 let computed_size = types::Struct { version }.compute_size(&self.current_leader)?;
                 if computed_size > std::u32::MAX as usize {
-                    error!("Tagged field is too large to encode ({} bytes)", computed_size);
+                    error!(
+                        "Tagged field is too large to encode ({} bytes)",
+                        computed_size
+                    );
                     return Err(EncodeError);
                 }
                 total_size += types::UnsignedVarInt.compute_size(1)?;
@@ -727,7 +778,10 @@ impl Encodable for PartitionData {
             if &self.snapshot_id != &Default::default() {
                 let computed_size = types::Struct { version }.compute_size(&self.snapshot_id)?;
                 if computed_size > std::u32::MAX as usize {
-                    error!("Tagged field is too large to encode ({} bytes)", computed_size);
+                    error!(
+                        "Tagged field is too large to encode ({} bytes)",
+                        computed_size
+                    );
                     return Err(EncodeError);
                 }
                 total_size += types::UnsignedVarInt.compute_size(2)?;
@@ -787,13 +841,13 @@ impl Decodable for PartitionData {
                 match tag {
                     0 => {
                         diverging_epoch = types::Struct { version }.decode(buf)?;
-                    },
+                    }
                     1 => {
                         current_leader = types::Struct { version }.decode(buf)?;
-                    },
+                    }
                     2 => {
                         snapshot_id = types::Struct { version }.decode(buf)?;
-                    },
+                    }
                     _ => {
                         let mut unknown_value = vec![0; size as usize];
                         buf.try_copy_to_slice(&mut unknown_value)?;
@@ -848,17 +902,17 @@ impl Message for PartitionData {
 #[builder(default)]
 pub struct FetchableTopicResponse {
     /// The topic name.
-    /// 
+    ///
     /// Supported API versions: 0-12
     pub topic: super::TopicName,
 
     /// The unique topic ID
-    /// 
+    ///
     /// Supported API versions: 13
     pub topic_id: Uuid,
 
     /// The topic partitions.
-    /// 
+    ///
     /// Supported API versions: 0-13
     pub partitions: Vec<PartitionData>,
 
@@ -869,7 +923,7 @@ pub struct FetchableTopicResponse {
 impl Builder for FetchableTopicResponse {
     type Builder = FetchableTopicResponseBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         FetchableTopicResponseBuilder::default()
     }
 }
@@ -894,7 +948,10 @@ impl Encodable for FetchableTopicResponse {
         if version >= 12 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -916,14 +973,18 @@ impl Encodable for FetchableTopicResponse {
             total_size += types::Uuid.compute_size(&self.topic_id)?;
         }
         if version >= 12 {
-            total_size += types::CompactArray(types::Struct { version }).compute_size(&self.partitions)?;
+            total_size +=
+                types::CompactArray(types::Struct { version }).compute_size(&self.partitions)?;
         } else {
             total_size += types::Array(types::Struct { version }).compute_size(&self.partitions)?;
         }
         if version >= 12 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -996,22 +1057,22 @@ impl Message for FetchableTopicResponse {
 #[builder(default)]
 pub struct FetchResponse {
     /// The duration in milliseconds for which the request was throttled due to a quota violation, or zero if the request did not violate any quota.
-    /// 
+    ///
     /// Supported API versions: 1-13
     pub throttle_time_ms: i32,
 
     /// The top level response error code.
-    /// 
+    ///
     /// Supported API versions: 7-13
     pub error_code: i16,
 
     /// The fetch session ID, or 0 if this is not part of a fetch session.
-    /// 
+    ///
     /// Supported API versions: 7-13
     pub session_id: i32,
 
     /// The response topics.
-    /// 
+    ///
     /// Supported API versions: 0-13
     pub responses: Vec<FetchableTopicResponse>,
 
@@ -1022,7 +1083,7 @@ pub struct FetchResponse {
 impl Builder for FetchResponse {
     type Builder = FetchResponseBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         FetchResponseBuilder::default()
     }
 }
@@ -1039,7 +1100,7 @@ impl Encodable for FetchResponse {
             types::Int32.encode(buf, &self.session_id)?;
         } else {
             if self.session_id != 0 {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 12 {
@@ -1050,7 +1111,10 @@ impl Encodable for FetchResponse {
         if version >= 12 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -1071,18 +1135,22 @@ impl Encodable for FetchResponse {
             total_size += types::Int32.compute_size(&self.session_id)?;
         } else {
             if self.session_id != 0 {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 12 {
-            total_size += types::CompactArray(types::Struct { version }).compute_size(&self.responses)?;
+            total_size +=
+                types::CompactArray(types::Struct { version }).compute_size(&self.responses)?;
         } else {
             total_size += types::Array(types::Struct { version }).compute_size(&self.responses)?;
         }
         if version >= 12 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -1161,4 +1229,3 @@ impl HeaderVersion for FetchResponse {
         }
     }
 }
-

@@ -12,33 +12,34 @@ use log::error;
 use uuid::Uuid;
 
 use crate::protocol::{
-    Encodable, Decodable, MapEncodable, MapDecodable, Encoder, Decoder, EncodeError, DecodeError, Message, HeaderVersion, VersionRange,
-    types, write_unknown_tagged_fields, compute_unknown_tagged_fields_size, StrBytes, buf::{ByteBuf, ByteBufMut}, Builder
+    buf::{ByteBuf, ByteBufMut},
+    compute_unknown_tagged_fields_size, types, write_unknown_tagged_fields, Builder, Decodable,
+    DecodeError, Decoder, Encodable, EncodeError, Encoder, HeaderVersion, MapDecodable,
+    MapEncodable, Message, StrBytes, VersionRange,
 };
-
 
 /// Valid versions: 0-1
 #[non_exhaustive]
 #[derive(Debug, Clone, PartialEq, derive_builder::Builder)]
 #[builder(default)]
 pub struct ReplicaState {
-    /// 
-    /// 
+    ///
+    ///
     /// Supported API versions: 0-1
     pub replica_id: super::BrokerId,
 
     /// The last known log end offset of the follower or -1 if it is unknown
-    /// 
+    ///
     /// Supported API versions: 0-1
     pub log_end_offset: i64,
 
     /// The last known leader wall clock time time when a follower fetched from the leader. This is reported as -1 both for the current leader or if it is unknown for a voter
-    /// 
+    ///
     /// Supported API versions: 1
     pub last_fetch_timestamp: i64,
 
     /// The leader wall clock append time of the offset for which the follower made the most recent fetch request. This is reported as the current time for the leader and -1 if unknown for a voter
-    /// 
+    ///
     /// Supported API versions: 1
     pub last_caught_up_timestamp: i64,
 
@@ -49,7 +50,7 @@ pub struct ReplicaState {
 impl Builder for ReplicaState {
     type Builder = ReplicaStateBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         ReplicaStateBuilder::default()
     }
 }
@@ -66,7 +67,10 @@ impl Encodable for ReplicaState {
         }
         let num_tagged_fields = self.unknown_tagged_fields.len();
         if num_tagged_fields > std::u32::MAX as usize {
-            error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+            error!(
+                "Too many tagged fields to encode ({} fields)",
+                num_tagged_fields
+            );
             return Err(EncodeError);
         }
         types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -86,7 +90,10 @@ impl Encodable for ReplicaState {
         }
         let num_tagged_fields = self.unknown_tagged_fields.len();
         if num_tagged_fields > std::u32::MAX as usize {
-            error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+            error!(
+                "Too many tagged fields to encode ({} fields)",
+                num_tagged_fields
+            );
             return Err(EncodeError);
         }
         total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -151,37 +158,37 @@ impl Message for ReplicaState {
 #[builder(default)]
 pub struct PartitionData {
     /// The partition index.
-    /// 
+    ///
     /// Supported API versions: 0-1
     pub partition_index: i32,
 
-    /// 
-    /// 
+    ///
+    ///
     /// Supported API versions: 0-1
     pub error_code: i16,
 
     /// The ID of the current leader or -1 if the leader is unknown.
-    /// 
+    ///
     /// Supported API versions: 0-1
     pub leader_id: super::BrokerId,
 
     /// The latest known leader epoch
-    /// 
+    ///
     /// Supported API versions: 0-1
     pub leader_epoch: i32,
 
-    /// 
-    /// 
+    ///
+    ///
     /// Supported API versions: 0-1
     pub high_watermark: i64,
 
-    /// 
-    /// 
+    ///
+    ///
     /// Supported API versions: 0-1
     pub current_voters: Vec<ReplicaState>,
 
-    /// 
-    /// 
+    ///
+    ///
     /// Supported API versions: 0-1
     pub observers: Vec<ReplicaState>,
 
@@ -192,7 +199,7 @@ pub struct PartitionData {
 impl Builder for PartitionData {
     type Builder = PartitionDataBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         PartitionDataBuilder::default()
     }
 }
@@ -208,7 +215,10 @@ impl Encodable for PartitionData {
         types::CompactArray(types::Struct { version }).encode(buf, &self.observers)?;
         let num_tagged_fields = self.unknown_tagged_fields.len();
         if num_tagged_fields > std::u32::MAX as usize {
-            error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+            error!(
+                "Too many tagged fields to encode ({} fields)",
+                num_tagged_fields
+            );
             return Err(EncodeError);
         }
         types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -223,11 +233,16 @@ impl Encodable for PartitionData {
         total_size += types::Int32.compute_size(&self.leader_id)?;
         total_size += types::Int32.compute_size(&self.leader_epoch)?;
         total_size += types::Int64.compute_size(&self.high_watermark)?;
-        total_size += types::CompactArray(types::Struct { version }).compute_size(&self.current_voters)?;
-        total_size += types::CompactArray(types::Struct { version }).compute_size(&self.observers)?;
+        total_size +=
+            types::CompactArray(types::Struct { version }).compute_size(&self.current_voters)?;
+        total_size +=
+            types::CompactArray(types::Struct { version }).compute_size(&self.observers)?;
         let num_tagged_fields = self.unknown_tagged_fields.len();
         if num_tagged_fields > std::u32::MAX as usize {
-            error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+            error!(
+                "Too many tagged fields to encode ({} fields)",
+                num_tagged_fields
+            );
             return Err(EncodeError);
         }
         total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -293,12 +308,12 @@ impl Message for PartitionData {
 #[builder(default)]
 pub struct TopicData {
     /// The topic name.
-    /// 
+    ///
     /// Supported API versions: 0-1
     pub topic_name: super::TopicName,
 
-    /// 
-    /// 
+    ///
+    ///
     /// Supported API versions: 0-1
     pub partitions: Vec<PartitionData>,
 
@@ -309,7 +324,7 @@ pub struct TopicData {
 impl Builder for TopicData {
     type Builder = TopicDataBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         TopicDataBuilder::default()
     }
 }
@@ -320,7 +335,10 @@ impl Encodable for TopicData {
         types::CompactArray(types::Struct { version }).encode(buf, &self.partitions)?;
         let num_tagged_fields = self.unknown_tagged_fields.len();
         if num_tagged_fields > std::u32::MAX as usize {
-            error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+            error!(
+                "Too many tagged fields to encode ({} fields)",
+                num_tagged_fields
+            );
             return Err(EncodeError);
         }
         types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -331,10 +349,14 @@ impl Encodable for TopicData {
     fn compute_size(&self, version: i16) -> Result<usize, EncodeError> {
         let mut total_size = 0;
         total_size += types::CompactString.compute_size(&self.topic_name)?;
-        total_size += types::CompactArray(types::Struct { version }).compute_size(&self.partitions)?;
+        total_size +=
+            types::CompactArray(types::Struct { version }).compute_size(&self.partitions)?;
         let num_tagged_fields = self.unknown_tagged_fields.len();
         if num_tagged_fields > std::u32::MAX as usize {
-            error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+            error!(
+                "Too many tagged fields to encode ({} fields)",
+                num_tagged_fields
+            );
             return Err(EncodeError);
         }
         total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -385,12 +407,12 @@ impl Message for TopicData {
 #[builder(default)]
 pub struct DescribeQuorumResponse {
     /// The top level error code.
-    /// 
+    ///
     /// Supported API versions: 0-1
     pub error_code: i16,
 
-    /// 
-    /// 
+    ///
+    ///
     /// Supported API versions: 0-1
     pub topics: Vec<TopicData>,
 
@@ -401,7 +423,7 @@ pub struct DescribeQuorumResponse {
 impl Builder for DescribeQuorumResponse {
     type Builder = DescribeQuorumResponseBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         DescribeQuorumResponseBuilder::default()
     }
 }
@@ -412,7 +434,10 @@ impl Encodable for DescribeQuorumResponse {
         types::CompactArray(types::Struct { version }).encode(buf, &self.topics)?;
         let num_tagged_fields = self.unknown_tagged_fields.len();
         if num_tagged_fields > std::u32::MAX as usize {
-            error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+            error!(
+                "Too many tagged fields to encode ({} fields)",
+                num_tagged_fields
+            );
             return Err(EncodeError);
         }
         types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -426,7 +451,10 @@ impl Encodable for DescribeQuorumResponse {
         total_size += types::CompactArray(types::Struct { version }).compute_size(&self.topics)?;
         let num_tagged_fields = self.unknown_tagged_fields.len();
         if num_tagged_fields > std::u32::MAX as usize {
-            error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+            error!(
+                "Too many tagged fields to encode ({} fields)",
+                num_tagged_fields
+            );
             return Err(EncodeError);
         }
         total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -476,4 +504,3 @@ impl HeaderVersion for DescribeQuorumResponse {
         1
     }
 }
-

@@ -12,10 +12,11 @@ use log::error;
 use uuid::Uuid;
 
 use crate::protocol::{
-    Encodable, Decodable, MapEncodable, MapDecodable, Encoder, Decoder, EncodeError, DecodeError, Message, HeaderVersion, VersionRange,
-    types, write_unknown_tagged_fields, compute_unknown_tagged_fields_size, StrBytes, buf::{ByteBuf, ByteBufMut}, Builder
+    buf::{ByteBuf, ByteBufMut},
+    compute_unknown_tagged_fields_size, types, write_unknown_tagged_fields, Builder, Decodable,
+    DecodeError, Decoder, Encodable, EncodeError, Encoder, HeaderVersion, MapDecodable,
+    MapEncodable, Message, StrBytes, VersionRange,
 };
-
 
 /// Valid versions: 0-7
 #[non_exhaustive]
@@ -23,27 +24,27 @@ use crate::protocol::{
 #[builder(default)]
 pub struct CreatableTopicConfigs {
     /// The configuration name.
-    /// 
+    ///
     /// Supported API versions: 5-7
     pub name: StrBytes,
 
     /// The configuration value.
-    /// 
+    ///
     /// Supported API versions: 5-7
     pub value: Option<StrBytes>,
 
     /// True if the configuration is read-only.
-    /// 
+    ///
     /// Supported API versions: 5-7
     pub read_only: bool,
 
     /// The configuration source.
-    /// 
+    ///
     /// Supported API versions: 5-7
     pub config_source: i8,
 
     /// True if this configuration is sensitive.
-    /// 
+    ///
     /// Supported API versions: 5-7
     pub is_sensitive: bool,
 
@@ -54,7 +55,7 @@ pub struct CreatableTopicConfigs {
 impl Builder for CreatableTopicConfigs {
     type Builder = CreatableTopicConfigsBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         CreatableTopicConfigsBuilder::default()
     }
 }
@@ -65,21 +66,26 @@ impl Encodable for CreatableTopicConfigs {
             types::CompactString.encode(buf, &self.name)?;
         } else {
             if !self.name.is_empty() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 5 {
             types::CompactString.encode(buf, &self.value)?;
         } else {
-            if !self.value.as_ref().map(|x| x.is_empty()).unwrap_or_default() {
-                return Err(EncodeError)
+            if !self
+                .value
+                .as_ref()
+                .map(|x| x.is_empty())
+                .unwrap_or_default()
+            {
+                return Err(EncodeError);
             }
         }
         if version >= 5 {
             types::Boolean.encode(buf, &self.read_only)?;
         } else {
             if self.read_only {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 5 {
@@ -89,13 +95,16 @@ impl Encodable for CreatableTopicConfigs {
             types::Boolean.encode(buf, &self.is_sensitive)?;
         } else {
             if self.is_sensitive {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 5 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -110,21 +119,26 @@ impl Encodable for CreatableTopicConfigs {
             total_size += types::CompactString.compute_size(&self.name)?;
         } else {
             if !self.name.is_empty() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 5 {
             total_size += types::CompactString.compute_size(&self.value)?;
         } else {
-            if !self.value.as_ref().map(|x| x.is_empty()).unwrap_or_default() {
-                return Err(EncodeError)
+            if !self
+                .value
+                .as_ref()
+                .map(|x| x.is_empty())
+                .unwrap_or_default()
+            {
+                return Err(EncodeError);
             }
         }
         if version >= 5 {
             total_size += types::Boolean.compute_size(&self.read_only)?;
         } else {
             if self.read_only {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 5 {
@@ -134,13 +148,16 @@ impl Encodable for CreatableTopicConfigs {
             total_size += types::Boolean.compute_size(&self.is_sensitive)?;
         } else {
             if self.is_sensitive {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 5 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -223,37 +240,37 @@ impl Message for CreatableTopicConfigs {
 #[builder(default)]
 pub struct CreatableTopicResult {
     /// The unique topic ID
-    /// 
+    ///
     /// Supported API versions: 7
     pub topic_id: Uuid,
 
     /// The error code, or 0 if there was no error.
-    /// 
+    ///
     /// Supported API versions: 0-7
     pub error_code: i16,
 
     /// The error message, or null if there was no error.
-    /// 
+    ///
     /// Supported API versions: 1-7
     pub error_message: Option<StrBytes>,
 
     /// Optional topic config error returned if configs are not returned in the response.
-    /// 
+    ///
     /// Supported API versions: 5-7
     pub topic_config_error_code: i16,
 
     /// Number of partitions of the topic.
-    /// 
+    ///
     /// Supported API versions: 5-7
     pub num_partitions: i32,
 
     /// Replication factor of the topic.
-    /// 
+    ///
     /// Supported API versions: 5-7
     pub replication_factor: i16,
 
     /// Configuration of the topic.
-    /// 
+    ///
     /// Supported API versions: 5-7
     pub configs: Option<Vec<CreatableTopicConfigs>>,
 
@@ -264,14 +281,19 @@ pub struct CreatableTopicResult {
 impl Builder for CreatableTopicResult {
     type Builder = CreatableTopicResultBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         CreatableTopicResultBuilder::default()
     }
 }
 
 impl MapEncodable for CreatableTopicResult {
     type Key = super::TopicName;
-    fn encode<B: ByteBufMut>(&self, key: &Self::Key, buf: &mut B, version: i16) -> Result<(), EncodeError> {
+    fn encode<B: ByteBufMut>(
+        &self,
+        key: &Self::Key,
+        buf: &mut B,
+        version: i16,
+    ) -> Result<(), EncodeError> {
         if version >= 5 {
             types::CompactString.encode(buf, key)?;
         } else {
@@ -303,14 +325,20 @@ impl MapEncodable for CreatableTopicResult {
                 num_tagged_fields += 1;
             }
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
             if self.topic_config_error_code != 0 {
                 let computed_size = types::Int16.compute_size(&self.topic_config_error_code)?;
                 if computed_size > std::u32::MAX as usize {
-                    error!("Tagged field is too large to encode ({} bytes)", computed_size);
+                    error!(
+                        "Tagged field is too large to encode ({} bytes)",
+                        computed_size
+                    );
                     return Err(EncodeError);
                 }
                 types::UnsignedVarInt.encode(buf, 0)?;
@@ -347,7 +375,8 @@ impl MapEncodable for CreatableTopicResult {
             total_size += types::Int16.compute_size(&self.replication_factor)?;
         }
         if version >= 5 {
-            total_size += types::CompactArray(types::Struct { version }).compute_size(&self.configs)?;
+            total_size +=
+                types::CompactArray(types::Struct { version }).compute_size(&self.configs)?;
         }
         if version >= 5 {
             let mut num_tagged_fields = self.unknown_tagged_fields.len();
@@ -355,14 +384,20 @@ impl MapEncodable for CreatableTopicResult {
                 num_tagged_fields += 1;
             }
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
             if self.topic_config_error_code != 0 {
                 let computed_size = types::Int16.compute_size(&self.topic_config_error_code)?;
                 if computed_size > std::u32::MAX as usize {
-                    error!("Tagged field is too large to encode ({} bytes)", computed_size);
+                    error!(
+                        "Tagged field is too large to encode ({} bytes)",
+                        computed_size
+                    );
                     return Err(EncodeError);
                 }
                 total_size += types::UnsignedVarInt.compute_size(0)?;
@@ -424,7 +459,7 @@ impl MapDecodable for CreatableTopicResult {
                 match tag {
                     0 => {
                         topic_config_error_code = types::Int16.decode(buf)?;
-                    },
+                    }
                     _ => {
                         let mut unknown_value = vec![0; size as usize];
                         buf.try_copy_to_slice(&mut unknown_value)?;
@@ -433,16 +468,19 @@ impl MapDecodable for CreatableTopicResult {
                 }
             }
         }
-        Ok((key_field, Self {
-            topic_id,
-            error_code,
-            error_message,
-            topic_config_error_code,
-            num_partitions,
-            replication_factor,
-            configs,
-            unknown_tagged_fields,
-        }))
+        Ok((
+            key_field,
+            Self {
+                topic_id,
+                error_code,
+                error_message,
+                topic_config_error_code,
+                num_partitions,
+                replication_factor,
+                configs,
+                unknown_tagged_fields,
+            },
+        ))
     }
 }
 
@@ -471,12 +509,12 @@ impl Message for CreatableTopicResult {
 #[builder(default)]
 pub struct CreateTopicsResponse {
     /// The duration in milliseconds for which the request was throttled due to a quota violation, or zero if the request did not violate any quota.
-    /// 
+    ///
     /// Supported API versions: 2-7
     pub throttle_time_ms: i32,
 
     /// Results for each topic we tried to create.
-    /// 
+    ///
     /// Supported API versions: 0-7
     pub topics: indexmap::IndexMap<super::TopicName, CreatableTopicResult>,
 
@@ -487,7 +525,7 @@ pub struct CreateTopicsResponse {
 impl Builder for CreateTopicsResponse {
     type Builder = CreateTopicsResponseBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         CreateTopicsResponseBuilder::default()
     }
 }
@@ -505,7 +543,10 @@ impl Encodable for CreateTopicsResponse {
         if version >= 5 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -520,14 +561,18 @@ impl Encodable for CreateTopicsResponse {
             total_size += types::Int32.compute_size(&self.throttle_time_ms)?;
         }
         if version >= 5 {
-            total_size += types::CompactArray(types::Struct { version }).compute_size(&self.topics)?;
+            total_size +=
+                types::CompactArray(types::Struct { version }).compute_size(&self.topics)?;
         } else {
             total_size += types::Array(types::Struct { version }).compute_size(&self.topics)?;
         }
         if version >= 5 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -592,4 +637,3 @@ impl HeaderVersion for CreateTopicsResponse {
         }
     }
 }
-

@@ -12,10 +12,11 @@ use log::error;
 use uuid::Uuid;
 
 use crate::protocol::{
-    Encodable, Decodable, MapEncodable, MapDecodable, Encoder, Decoder, EncodeError, DecodeError, Message, HeaderVersion, VersionRange,
-    types, write_unknown_tagged_fields, compute_unknown_tagged_fields_size, StrBytes, buf::{ByteBuf, ByteBufMut}, Builder
+    buf::{ByteBuf, ByteBufMut},
+    compute_unknown_tagged_fields_size, types, write_unknown_tagged_fields, Builder, Decodable,
+    DecodeError, Decoder, Encodable, EncodeError, Encoder, HeaderVersion, MapDecodable,
+    MapEncodable, Message, StrBytes, VersionRange,
 };
-
 
 /// Valid versions: 0-2
 #[non_exhaustive]
@@ -23,7 +24,7 @@ use crate::protocol::{
 #[builder(default)]
 pub struct AlterableConfig {
     /// The value to set for the configuration key.
-    /// 
+    ///
     /// Supported API versions: 0-2
     pub value: Option<StrBytes>,
 
@@ -34,14 +35,19 @@ pub struct AlterableConfig {
 impl Builder for AlterableConfig {
     type Builder = AlterableConfigBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         AlterableConfigBuilder::default()
     }
 }
 
 impl MapEncodable for AlterableConfig {
     type Key = StrBytes;
-    fn encode<B: ByteBufMut>(&self, key: &Self::Key, buf: &mut B, version: i16) -> Result<(), EncodeError> {
+    fn encode<B: ByteBufMut>(
+        &self,
+        key: &Self::Key,
+        buf: &mut B,
+        version: i16,
+    ) -> Result<(), EncodeError> {
         if version >= 2 {
             types::CompactString.encode(buf, key)?;
         } else {
@@ -55,7 +61,10 @@ impl MapEncodable for AlterableConfig {
         if version >= 2 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -79,7 +88,10 @@ impl MapEncodable for AlterableConfig {
         if version >= 2 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -114,10 +126,13 @@ impl MapDecodable for AlterableConfig {
                 unknown_tagged_fields.insert(tag as i32, unknown_value);
             }
         }
-        Ok((key_field, Self {
-            value,
-            unknown_tagged_fields,
-        }))
+        Ok((
+            key_field,
+            Self {
+                value,
+                unknown_tagged_fields,
+            },
+        ))
     }
 }
 
@@ -140,17 +155,17 @@ impl Message for AlterableConfig {
 #[builder(default)]
 pub struct AlterConfigsResource {
     /// The resource type.
-    /// 
+    ///
     /// Supported API versions: 0-2
     pub resource_type: i8,
 
     /// The resource name.
-    /// 
+    ///
     /// Supported API versions: 0-2
     pub resource_name: StrBytes,
 
     /// The configurations.
-    /// 
+    ///
     /// Supported API versions: 0-2
     pub configs: indexmap::IndexMap<StrBytes, AlterableConfig>,
 
@@ -161,7 +176,7 @@ pub struct AlterConfigsResource {
 impl Builder for AlterConfigsResource {
     type Builder = AlterConfigsResourceBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         AlterConfigsResourceBuilder::default()
     }
 }
@@ -182,7 +197,10 @@ impl Encodable for AlterConfigsResource {
         if version >= 2 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -200,14 +218,18 @@ impl Encodable for AlterConfigsResource {
             total_size += types::String.compute_size(&self.resource_name)?;
         }
         if version >= 2 {
-            total_size += types::CompactArray(types::Struct { version }).compute_size(&self.configs)?;
+            total_size +=
+                types::CompactArray(types::Struct { version }).compute_size(&self.configs)?;
         } else {
             total_size += types::Array(types::Struct { version }).compute_size(&self.configs)?;
         }
         if version >= 2 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -272,12 +294,12 @@ impl Message for AlterConfigsResource {
 #[builder(default)]
 pub struct AlterConfigsRequest {
     /// The updates for each resource.
-    /// 
+    ///
     /// Supported API versions: 0-2
     pub resources: Vec<AlterConfigsResource>,
 
     /// True if we should validate the request, but not change the configurations.
-    /// 
+    ///
     /// Supported API versions: 0-2
     pub validate_only: bool,
 
@@ -288,7 +310,7 @@ pub struct AlterConfigsRequest {
 impl Builder for AlterConfigsRequest {
     type Builder = AlterConfigsRequestBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         AlterConfigsRequestBuilder::default()
     }
 }
@@ -304,7 +326,10 @@ impl Encodable for AlterConfigsRequest {
         if version >= 2 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -316,7 +341,8 @@ impl Encodable for AlterConfigsRequest {
     fn compute_size(&self, version: i16) -> Result<usize, EncodeError> {
         let mut total_size = 0;
         if version >= 2 {
-            total_size += types::CompactArray(types::Struct { version }).compute_size(&self.resources)?;
+            total_size +=
+                types::CompactArray(types::Struct { version }).compute_size(&self.resources)?;
         } else {
             total_size += types::Array(types::Struct { version }).compute_size(&self.resources)?;
         }
@@ -324,7 +350,10 @@ impl Encodable for AlterConfigsRequest {
         if version >= 2 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -385,4 +414,3 @@ impl HeaderVersion for AlterConfigsRequest {
         }
     }
 }
-

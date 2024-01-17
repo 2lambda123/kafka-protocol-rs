@@ -12,10 +12,11 @@ use log::error;
 use uuid::Uuid;
 
 use crate::protocol::{
-    Encodable, Decodable, MapEncodable, MapDecodable, Encoder, Decoder, EncodeError, DecodeError, Message, HeaderVersion, VersionRange,
-    types, write_unknown_tagged_fields, compute_unknown_tagged_fields_size, StrBytes, buf::{ByteBuf, ByteBufMut}, Builder
+    buf::{ByteBuf, ByteBufMut},
+    compute_unknown_tagged_fields_size, types, write_unknown_tagged_fields, Builder, Decodable,
+    DecodeError, Decoder, Encodable, EncodeError, Encoder, HeaderVersion, MapDecodable,
+    MapEncodable, Message, StrBytes, VersionRange,
 };
-
 
 /// Valid versions: 0-1
 #[non_exhaustive]
@@ -23,12 +24,12 @@ use crate::protocol::{
 #[builder(default)]
 pub struct EntityData {
     /// The entity type.
-    /// 
+    ///
     /// Supported API versions: 0-1
     pub entity_type: StrBytes,
 
     /// The name of the entity, or null if the default.
-    /// 
+    ///
     /// Supported API versions: 0-1
     pub entity_name: Option<StrBytes>,
 
@@ -39,7 +40,7 @@ pub struct EntityData {
 impl Builder for EntityData {
     type Builder = EntityDataBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         EntityDataBuilder::default()
     }
 }
@@ -59,7 +60,10 @@ impl Encodable for EntityData {
         if version >= 1 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -83,7 +87,10 @@ impl Encodable for EntityData {
         if version >= 1 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -145,17 +152,17 @@ impl Message for EntityData {
 #[builder(default)]
 pub struct OpData {
     /// The quota configuration key.
-    /// 
+    ///
     /// Supported API versions: 0-1
     pub key: StrBytes,
 
     /// The value to set, otherwise ignored if the value is to be removed.
-    /// 
+    ///
     /// Supported API versions: 0-1
     pub value: f64,
 
     /// Whether the quota configuration value should be removed, otherwise set.
-    /// 
+    ///
     /// Supported API versions: 0-1
     pub remove: bool,
 
@@ -166,7 +173,7 @@ pub struct OpData {
 impl Builder for OpData {
     type Builder = OpDataBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         OpDataBuilder::default()
     }
 }
@@ -183,7 +190,10 @@ impl Encodable for OpData {
         if version >= 1 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -204,7 +214,10 @@ impl Encodable for OpData {
         if version >= 1 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -265,12 +278,12 @@ impl Message for OpData {
 #[builder(default)]
 pub struct EntryData {
     /// The quota entity to alter.
-    /// 
+    ///
     /// Supported API versions: 0-1
     pub entity: Vec<EntityData>,
 
     /// An individual quota configuration entry to alter.
-    /// 
+    ///
     /// Supported API versions: 0-1
     pub ops: Vec<OpData>,
 
@@ -281,7 +294,7 @@ pub struct EntryData {
 impl Builder for EntryData {
     type Builder = EntryDataBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         EntryDataBuilder::default()
     }
 }
@@ -301,7 +314,10 @@ impl Encodable for EntryData {
         if version >= 1 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -313,7 +329,8 @@ impl Encodable for EntryData {
     fn compute_size(&self, version: i16) -> Result<usize, EncodeError> {
         let mut total_size = 0;
         if version >= 1 {
-            total_size += types::CompactArray(types::Struct { version }).compute_size(&self.entity)?;
+            total_size +=
+                types::CompactArray(types::Struct { version }).compute_size(&self.entity)?;
         } else {
             total_size += types::Array(types::Struct { version }).compute_size(&self.entity)?;
         }
@@ -325,7 +342,10 @@ impl Encodable for EntryData {
         if version >= 1 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -387,12 +407,12 @@ impl Message for EntryData {
 #[builder(default)]
 pub struct AlterClientQuotasRequest {
     /// The quota configuration entries to alter.
-    /// 
+    ///
     /// Supported API versions: 0-1
     pub entries: Vec<EntryData>,
 
     /// Whether the alteration should be validated, but not performed.
-    /// 
+    ///
     /// Supported API versions: 0-1
     pub validate_only: bool,
 
@@ -403,7 +423,7 @@ pub struct AlterClientQuotasRequest {
 impl Builder for AlterClientQuotasRequest {
     type Builder = AlterClientQuotasRequestBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         AlterClientQuotasRequestBuilder::default()
     }
 }
@@ -419,7 +439,10 @@ impl Encodable for AlterClientQuotasRequest {
         if version >= 1 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -431,7 +454,8 @@ impl Encodable for AlterClientQuotasRequest {
     fn compute_size(&self, version: i16) -> Result<usize, EncodeError> {
         let mut total_size = 0;
         if version >= 1 {
-            total_size += types::CompactArray(types::Struct { version }).compute_size(&self.entries)?;
+            total_size +=
+                types::CompactArray(types::Struct { version }).compute_size(&self.entries)?;
         } else {
             total_size += types::Array(types::Struct { version }).compute_size(&self.entries)?;
         }
@@ -439,7 +463,10 @@ impl Encodable for AlterClientQuotasRequest {
         if version >= 1 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -500,4 +527,3 @@ impl HeaderVersion for AlterClientQuotasRequest {
         }
     }
 }
-

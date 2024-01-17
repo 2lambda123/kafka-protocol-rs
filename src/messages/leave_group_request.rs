@@ -12,10 +12,11 @@ use log::error;
 use uuid::Uuid;
 
 use crate::protocol::{
-    Encodable, Decodable, MapEncodable, MapDecodable, Encoder, Decoder, EncodeError, DecodeError, Message, HeaderVersion, VersionRange,
-    types, write_unknown_tagged_fields, compute_unknown_tagged_fields_size, StrBytes, buf::{ByteBuf, ByteBufMut}, Builder
+    buf::{ByteBuf, ByteBufMut},
+    compute_unknown_tagged_fields_size, types, write_unknown_tagged_fields, Builder, Decodable,
+    DecodeError, Decoder, Encodable, EncodeError, Encoder, HeaderVersion, MapDecodable,
+    MapEncodable, Message, StrBytes, VersionRange,
 };
-
 
 /// Valid versions: 0-5
 #[non_exhaustive]
@@ -23,17 +24,17 @@ use crate::protocol::{
 #[builder(default)]
 pub struct MemberIdentity {
     /// The member ID to remove from the group.
-    /// 
+    ///
     /// Supported API versions: 3-5
     pub member_id: StrBytes,
 
     /// The group instance ID to remove from the group.
-    /// 
+    ///
     /// Supported API versions: 3-5
     pub group_instance_id: Option<StrBytes>,
 
     /// The reason why the member left the group.
-    /// 
+    ///
     /// Supported API versions: 5
     pub reason: Option<StrBytes>,
 
@@ -44,7 +45,7 @@ pub struct MemberIdentity {
 impl Builder for MemberIdentity {
     type Builder = MemberIdentityBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         MemberIdentityBuilder::default()
     }
 }
@@ -59,7 +60,7 @@ impl Encodable for MemberIdentity {
             }
         } else {
             if !self.member_id.is_empty() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 3 {
@@ -70,7 +71,7 @@ impl Encodable for MemberIdentity {
             }
         } else {
             if !self.group_instance_id.is_none() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 5 {
@@ -79,7 +80,10 @@ impl Encodable for MemberIdentity {
         if version >= 4 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -98,7 +102,7 @@ impl Encodable for MemberIdentity {
             }
         } else {
             if !self.member_id.is_empty() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 3 {
@@ -109,7 +113,7 @@ impl Encodable for MemberIdentity {
             }
         } else {
             if !self.group_instance_id.is_none() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 5 {
@@ -118,7 +122,10 @@ impl Encodable for MemberIdentity {
         if version >= 4 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -195,17 +202,17 @@ impl Message for MemberIdentity {
 #[builder(default)]
 pub struct LeaveGroupRequest {
     /// The ID of the group to leave.
-    /// 
+    ///
     /// Supported API versions: 0-5
     pub group_id: super::GroupId,
 
     /// The member ID to remove from the group.
-    /// 
+    ///
     /// Supported API versions: 0-2
     pub member_id: StrBytes,
 
     /// List of leaving member identities.
-    /// 
+    ///
     /// Supported API versions: 3-5
     pub members: Vec<MemberIdentity>,
 
@@ -216,7 +223,7 @@ pub struct LeaveGroupRequest {
 impl Builder for LeaveGroupRequest {
     type Builder = LeaveGroupRequestBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         LeaveGroupRequestBuilder::default()
     }
 }
@@ -232,7 +239,7 @@ impl Encodable for LeaveGroupRequest {
             types::String.encode(buf, &self.member_id)?;
         } else {
             if !self.member_id.is_empty() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 3 {
@@ -243,13 +250,16 @@ impl Encodable for LeaveGroupRequest {
             }
         } else {
             if !self.members.is_empty() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 4 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -269,24 +279,29 @@ impl Encodable for LeaveGroupRequest {
             total_size += types::String.compute_size(&self.member_id)?;
         } else {
             if !self.member_id.is_empty() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 3 {
             if version >= 4 {
-                total_size += types::CompactArray(types::Struct { version }).compute_size(&self.members)?;
+                total_size +=
+                    types::CompactArray(types::Struct { version }).compute_size(&self.members)?;
             } else {
-                total_size += types::Array(types::Struct { version }).compute_size(&self.members)?;
+                total_size +=
+                    types::Array(types::Struct { version }).compute_size(&self.members)?;
             }
         } else {
             if !self.members.is_empty() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 4 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -362,4 +377,3 @@ impl HeaderVersion for LeaveGroupRequest {
         }
     }
 }
-

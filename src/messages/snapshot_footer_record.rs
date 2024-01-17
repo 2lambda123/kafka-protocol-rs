@@ -12,10 +12,11 @@ use log::error;
 use uuid::Uuid;
 
 use crate::protocol::{
-    Encodable, Decodable, MapEncodable, MapDecodable, Encoder, Decoder, EncodeError, DecodeError, Message, HeaderVersion, VersionRange,
-    types, write_unknown_tagged_fields, compute_unknown_tagged_fields_size, StrBytes, buf::{ByteBuf, ByteBufMut}, Builder
+    buf::{ByteBuf, ByteBufMut},
+    compute_unknown_tagged_fields_size, types, write_unknown_tagged_fields, Builder, Decodable,
+    DecodeError, Decoder, Encodable, EncodeError, Encoder, HeaderVersion, MapDecodable,
+    MapEncodable, Message, StrBytes, VersionRange,
 };
-
 
 /// Valid versions: 0
 #[non_exhaustive]
@@ -23,7 +24,7 @@ use crate::protocol::{
 #[builder(default)]
 pub struct SnapshotFooterRecord {
     /// The version of the snapshot footer record
-    /// 
+    ///
     /// Supported API versions: 0
     pub version: i16,
 
@@ -34,7 +35,7 @@ pub struct SnapshotFooterRecord {
 impl Builder for SnapshotFooterRecord {
     type Builder = SnapshotFooterRecordBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         SnapshotFooterRecordBuilder::default()
     }
 }
@@ -44,7 +45,10 @@ impl Encodable for SnapshotFooterRecord {
         types::Int16.encode(buf, &self.version)?;
         let num_tagged_fields = self.unknown_tagged_fields.len();
         if num_tagged_fields > std::u32::MAX as usize {
-            error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+            error!(
+                "Too many tagged fields to encode ({} fields)",
+                num_tagged_fields
+            );
             return Err(EncodeError);
         }
         types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -57,7 +61,10 @@ impl Encodable for SnapshotFooterRecord {
         total_size += types::Int16.compute_size(&self.version)?;
         let num_tagged_fields = self.unknown_tagged_fields.len();
         if num_tagged_fields > std::u32::MAX as usize {
-            error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+            error!(
+                "Too many tagged fields to encode ({} fields)",
+                num_tagged_fields
+            );
             return Err(EncodeError);
         }
         total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -98,4 +105,3 @@ impl Default for SnapshotFooterRecord {
 impl Message for SnapshotFooterRecord {
     const VERSIONS: VersionRange = VersionRange { min: 0, max: 0 };
 }
-

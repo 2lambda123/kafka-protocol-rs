@@ -12,10 +12,11 @@ use log::error;
 use uuid::Uuid;
 
 use crate::protocol::{
-    Encodable, Decodable, MapEncodable, MapDecodable, Encoder, Decoder, EncodeError, DecodeError, Message, HeaderVersion, VersionRange,
-    types, write_unknown_tagged_fields, compute_unknown_tagged_fields_size, StrBytes, buf::{ByteBuf, ByteBufMut}, Builder
+    buf::{ByteBuf, ByteBufMut},
+    compute_unknown_tagged_fields_size, types, write_unknown_tagged_fields, Builder, Decodable,
+    DecodeError, Decoder, Encodable, EncodeError, Encoder, HeaderVersion, MapDecodable,
+    MapEncodable, Message, StrBytes, VersionRange,
 };
-
 
 /// Valid versions: 0-2
 #[non_exhaustive]
@@ -23,7 +24,7 @@ use crate::protocol::{
 #[builder(default)]
 pub struct AlterReplicaLogDirTopic {
     /// The partition indexes.
-    /// 
+    ///
     /// Supported API versions: 0-2
     pub partitions: Vec<i32>,
 
@@ -34,14 +35,19 @@ pub struct AlterReplicaLogDirTopic {
 impl Builder for AlterReplicaLogDirTopic {
     type Builder = AlterReplicaLogDirTopicBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         AlterReplicaLogDirTopicBuilder::default()
     }
 }
 
 impl MapEncodable for AlterReplicaLogDirTopic {
     type Key = super::TopicName;
-    fn encode<B: ByteBufMut>(&self, key: &Self::Key, buf: &mut B, version: i16) -> Result<(), EncodeError> {
+    fn encode<B: ByteBufMut>(
+        &self,
+        key: &Self::Key,
+        buf: &mut B,
+        version: i16,
+    ) -> Result<(), EncodeError> {
         if version >= 2 {
             types::CompactString.encode(buf, key)?;
         } else {
@@ -55,7 +61,10 @@ impl MapEncodable for AlterReplicaLogDirTopic {
         if version >= 2 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -79,7 +88,10 @@ impl MapEncodable for AlterReplicaLogDirTopic {
         if version >= 2 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -114,10 +126,13 @@ impl MapDecodable for AlterReplicaLogDirTopic {
                 unknown_tagged_fields.insert(tag as i32, unknown_value);
             }
         }
-        Ok((key_field, Self {
-            partitions,
-            unknown_tagged_fields,
-        }))
+        Ok((
+            key_field,
+            Self {
+                partitions,
+                unknown_tagged_fields,
+            },
+        ))
     }
 }
 
@@ -140,7 +155,7 @@ impl Message for AlterReplicaLogDirTopic {
 #[builder(default)]
 pub struct AlterReplicaLogDir {
     /// The topics to add to the directory.
-    /// 
+    ///
     /// Supported API versions: 0-2
     pub topics: indexmap::IndexMap<super::TopicName, AlterReplicaLogDirTopic>,
 
@@ -151,14 +166,19 @@ pub struct AlterReplicaLogDir {
 impl Builder for AlterReplicaLogDir {
     type Builder = AlterReplicaLogDirBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         AlterReplicaLogDirBuilder::default()
     }
 }
 
 impl MapEncodable for AlterReplicaLogDir {
     type Key = StrBytes;
-    fn encode<B: ByteBufMut>(&self, key: &Self::Key, buf: &mut B, version: i16) -> Result<(), EncodeError> {
+    fn encode<B: ByteBufMut>(
+        &self,
+        key: &Self::Key,
+        buf: &mut B,
+        version: i16,
+    ) -> Result<(), EncodeError> {
         if version >= 2 {
             types::CompactString.encode(buf, key)?;
         } else {
@@ -172,7 +192,10 @@ impl MapEncodable for AlterReplicaLogDir {
         if version >= 2 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -189,14 +212,18 @@ impl MapEncodable for AlterReplicaLogDir {
             total_size += types::String.compute_size(key)?;
         }
         if version >= 2 {
-            total_size += types::CompactArray(types::Struct { version }).compute_size(&self.topics)?;
+            total_size +=
+                types::CompactArray(types::Struct { version }).compute_size(&self.topics)?;
         } else {
             total_size += types::Array(types::Struct { version }).compute_size(&self.topics)?;
         }
         if version >= 2 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -231,10 +258,13 @@ impl MapDecodable for AlterReplicaLogDir {
                 unknown_tagged_fields.insert(tag as i32, unknown_value);
             }
         }
-        Ok((key_field, Self {
-            topics,
-            unknown_tagged_fields,
-        }))
+        Ok((
+            key_field,
+            Self {
+                topics,
+                unknown_tagged_fields,
+            },
+        ))
     }
 }
 
@@ -257,7 +287,7 @@ impl Message for AlterReplicaLogDir {
 #[builder(default)]
 pub struct AlterReplicaLogDirsRequest {
     /// The alterations to make for each directory.
-    /// 
+    ///
     /// Supported API versions: 0-2
     pub dirs: indexmap::IndexMap<StrBytes, AlterReplicaLogDir>,
 
@@ -268,7 +298,7 @@ pub struct AlterReplicaLogDirsRequest {
 impl Builder for AlterReplicaLogDirsRequest {
     type Builder = AlterReplicaLogDirsRequestBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         AlterReplicaLogDirsRequestBuilder::default()
     }
 }
@@ -283,7 +313,10 @@ impl Encodable for AlterReplicaLogDirsRequest {
         if version >= 2 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -295,14 +328,18 @@ impl Encodable for AlterReplicaLogDirsRequest {
     fn compute_size(&self, version: i16) -> Result<usize, EncodeError> {
         let mut total_size = 0;
         if version >= 2 {
-            total_size += types::CompactArray(types::Struct { version }).compute_size(&self.dirs)?;
+            total_size +=
+                types::CompactArray(types::Struct { version }).compute_size(&self.dirs)?;
         } else {
             total_size += types::Array(types::Struct { version }).compute_size(&self.dirs)?;
         }
         if version >= 2 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -360,4 +397,3 @@ impl HeaderVersion for AlterReplicaLogDirsRequest {
         }
     }
 }
-

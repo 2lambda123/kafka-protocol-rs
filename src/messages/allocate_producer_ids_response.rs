@@ -12,10 +12,11 @@ use log::error;
 use uuid::Uuid;
 
 use crate::protocol::{
-    Encodable, Decodable, MapEncodable, MapDecodable, Encoder, Decoder, EncodeError, DecodeError, Message, HeaderVersion, VersionRange,
-    types, write_unknown_tagged_fields, compute_unknown_tagged_fields_size, StrBytes, buf::{ByteBuf, ByteBufMut}, Builder
+    buf::{ByteBuf, ByteBufMut},
+    compute_unknown_tagged_fields_size, types, write_unknown_tagged_fields, Builder, Decodable,
+    DecodeError, Decoder, Encodable, EncodeError, Encoder, HeaderVersion, MapDecodable,
+    MapEncodable, Message, StrBytes, VersionRange,
 };
-
 
 /// Valid versions: 0
 #[non_exhaustive]
@@ -23,22 +24,22 @@ use crate::protocol::{
 #[builder(default)]
 pub struct AllocateProducerIdsResponse {
     /// The duration in milliseconds for which the request was throttled due to a quota violation, or zero if the request did not violate any quota.
-    /// 
+    ///
     /// Supported API versions: 0
     pub throttle_time_ms: i32,
 
     /// The top level response error code
-    /// 
+    ///
     /// Supported API versions: 0
     pub error_code: i16,
 
     /// The first producer ID in this range, inclusive
-    /// 
+    ///
     /// Supported API versions: 0
     pub producer_id_start: super::ProducerId,
 
     /// The number of producer IDs in this range
-    /// 
+    ///
     /// Supported API versions: 0
     pub producer_id_len: i32,
 
@@ -49,7 +50,7 @@ pub struct AllocateProducerIdsResponse {
 impl Builder for AllocateProducerIdsResponse {
     type Builder = AllocateProducerIdsResponseBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         AllocateProducerIdsResponseBuilder::default()
     }
 }
@@ -62,7 +63,10 @@ impl Encodable for AllocateProducerIdsResponse {
         types::Int32.encode(buf, &self.producer_id_len)?;
         let num_tagged_fields = self.unknown_tagged_fields.len();
         if num_tagged_fields > std::u32::MAX as usize {
-            error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+            error!(
+                "Too many tagged fields to encode ({} fields)",
+                num_tagged_fields
+            );
             return Err(EncodeError);
         }
         types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -78,7 +82,10 @@ impl Encodable for AllocateProducerIdsResponse {
         total_size += types::Int32.compute_size(&self.producer_id_len)?;
         let num_tagged_fields = self.unknown_tagged_fields.len();
         if num_tagged_fields > std::u32::MAX as usize {
-            error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+            error!(
+                "Too many tagged fields to encode ({} fields)",
+                num_tagged_fields
+            );
             return Err(EncodeError);
         }
         total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -134,4 +141,3 @@ impl HeaderVersion for AllocateProducerIdsResponse {
         1
     }
 }
-

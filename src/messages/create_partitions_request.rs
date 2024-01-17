@@ -12,10 +12,11 @@ use log::error;
 use uuid::Uuid;
 
 use crate::protocol::{
-    Encodable, Decodable, MapEncodable, MapDecodable, Encoder, Decoder, EncodeError, DecodeError, Message, HeaderVersion, VersionRange,
-    types, write_unknown_tagged_fields, compute_unknown_tagged_fields_size, StrBytes, buf::{ByteBuf, ByteBufMut}, Builder
+    buf::{ByteBuf, ByteBufMut},
+    compute_unknown_tagged_fields_size, types, write_unknown_tagged_fields, Builder, Decodable,
+    DecodeError, Decoder, Encodable, EncodeError, Encoder, HeaderVersion, MapDecodable,
+    MapEncodable, Message, StrBytes, VersionRange,
 };
-
 
 /// Valid versions: 0-3
 #[non_exhaustive]
@@ -23,7 +24,7 @@ use crate::protocol::{
 #[builder(default)]
 pub struct CreatePartitionsAssignment {
     /// The assigned broker IDs.
-    /// 
+    ///
     /// Supported API versions: 0-3
     pub broker_ids: Vec<super::BrokerId>,
 
@@ -34,7 +35,7 @@ pub struct CreatePartitionsAssignment {
 impl Builder for CreatePartitionsAssignment {
     type Builder = CreatePartitionsAssignmentBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         CreatePartitionsAssignmentBuilder::default()
     }
 }
@@ -49,7 +50,10 @@ impl Encodable for CreatePartitionsAssignment {
         if version >= 2 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -68,7 +72,10 @@ impl Encodable for CreatePartitionsAssignment {
         if version >= 2 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -123,12 +130,12 @@ impl Message for CreatePartitionsAssignment {
 #[builder(default)]
 pub struct CreatePartitionsTopic {
     /// The new partition count.
-    /// 
+    ///
     /// Supported API versions: 0-3
     pub count: i32,
 
     /// The new partition assignments.
-    /// 
+    ///
     /// Supported API versions: 0-3
     pub assignments: Option<Vec<CreatePartitionsAssignment>>,
 
@@ -139,14 +146,19 @@ pub struct CreatePartitionsTopic {
 impl Builder for CreatePartitionsTopic {
     type Builder = CreatePartitionsTopicBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         CreatePartitionsTopicBuilder::default()
     }
 }
 
 impl MapEncodable for CreatePartitionsTopic {
     type Key = super::TopicName;
-    fn encode<B: ByteBufMut>(&self, key: &Self::Key, buf: &mut B, version: i16) -> Result<(), EncodeError> {
+    fn encode<B: ByteBufMut>(
+        &self,
+        key: &Self::Key,
+        buf: &mut B,
+        version: i16,
+    ) -> Result<(), EncodeError> {
         if version >= 2 {
             types::CompactString.encode(buf, key)?;
         } else {
@@ -161,7 +173,10 @@ impl MapEncodable for CreatePartitionsTopic {
         if version >= 2 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -179,14 +194,19 @@ impl MapEncodable for CreatePartitionsTopic {
         }
         total_size += types::Int32.compute_size(&self.count)?;
         if version >= 2 {
-            total_size += types::CompactArray(types::Struct { version }).compute_size(&self.assignments)?;
+            total_size +=
+                types::CompactArray(types::Struct { version }).compute_size(&self.assignments)?;
         } else {
-            total_size += types::Array(types::Struct { version }).compute_size(&self.assignments)?;
+            total_size +=
+                types::Array(types::Struct { version }).compute_size(&self.assignments)?;
         }
         if version >= 2 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -222,11 +242,14 @@ impl MapDecodable for CreatePartitionsTopic {
                 unknown_tagged_fields.insert(tag as i32, unknown_value);
             }
         }
-        Ok((key_field, Self {
-            count,
-            assignments,
-            unknown_tagged_fields,
-        }))
+        Ok((
+            key_field,
+            Self {
+                count,
+                assignments,
+                unknown_tagged_fields,
+            },
+        ))
     }
 }
 
@@ -250,17 +273,17 @@ impl Message for CreatePartitionsTopic {
 #[builder(default)]
 pub struct CreatePartitionsRequest {
     /// Each topic that we want to create new partitions inside.
-    /// 
+    ///
     /// Supported API versions: 0-3
     pub topics: indexmap::IndexMap<super::TopicName, CreatePartitionsTopic>,
 
     /// The time in ms to wait for the partitions to be created.
-    /// 
+    ///
     /// Supported API versions: 0-3
     pub timeout_ms: i32,
 
     /// If true, then validate the request, but don't actually increase the number of partitions.
-    /// 
+    ///
     /// Supported API versions: 0-3
     pub validate_only: bool,
 
@@ -271,7 +294,7 @@ pub struct CreatePartitionsRequest {
 impl Builder for CreatePartitionsRequest {
     type Builder = CreatePartitionsRequestBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         CreatePartitionsRequestBuilder::default()
     }
 }
@@ -288,7 +311,10 @@ impl Encodable for CreatePartitionsRequest {
         if version >= 2 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -300,7 +326,8 @@ impl Encodable for CreatePartitionsRequest {
     fn compute_size(&self, version: i16) -> Result<usize, EncodeError> {
         let mut total_size = 0;
         if version >= 2 {
-            total_size += types::CompactArray(types::Struct { version }).compute_size(&self.topics)?;
+            total_size +=
+                types::CompactArray(types::Struct { version }).compute_size(&self.topics)?;
         } else {
             total_size += types::Array(types::Struct { version }).compute_size(&self.topics)?;
         }
@@ -309,7 +336,10 @@ impl Encodable for CreatePartitionsRequest {
         if version >= 2 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -373,4 +403,3 @@ impl HeaderVersion for CreatePartitionsRequest {
         }
     }
 }
-

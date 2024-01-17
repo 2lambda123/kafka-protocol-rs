@@ -3,21 +3,21 @@
 //! This module has implementations of gzip, Snappy, as well as a noop compression format that
 //! allows encoding and decoding records into a [`Record`](crate::records::Record).
 
-use std::fmt::Debug;
 use crate::protocol::buf::{ByteBuf, ByteBufMut};
 use crate::protocol::{DecodeError, EncodeError};
+use std::fmt::Debug;
 
 mod gzip;
+mod lz4;
 mod none;
 mod snappy;
 mod zstd;
-mod lz4;
 
 pub use gzip::Gzip;
+pub use lz4::Lz4;
 pub use none::None;
 pub use snappy::Snappy;
 pub use zstd::Zstd;
-pub use lz4::Lz4;
 
 pub(crate) fn compression_err<Error: Debug>(e: Error) -> EncodeError {
     error!("Error whilst compressing data: {:?}", e);

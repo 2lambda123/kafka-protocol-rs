@@ -12,10 +12,11 @@ use log::error;
 use uuid::Uuid;
 
 use crate::protocol::{
-    Encodable, Decodable, MapEncodable, MapDecodable, Encoder, Decoder, EncodeError, DecodeError, Message, HeaderVersion, VersionRange,
-    types, write_unknown_tagged_fields, compute_unknown_tagged_fields_size, StrBytes, buf::{ByteBuf, ByteBufMut}, Builder
+    buf::{ByteBuf, ByteBufMut},
+    compute_unknown_tagged_fields_size, types, write_unknown_tagged_fields, Builder, Decodable,
+    DecodeError, Decoder, Encodable, EncodeError, Encoder, HeaderVersion, MapDecodable,
+    MapEncodable, Message, StrBytes, VersionRange,
 };
-
 
 /// Valid versions: 0-12
 #[non_exhaustive]
@@ -23,12 +24,12 @@ use crate::protocol::{
 #[builder(default)]
 pub struct MetadataRequestTopic {
     /// The topic id.
-    /// 
+    ///
     /// Supported API versions: 10-12
     pub topic_id: Uuid,
 
     /// The topic name.
-    /// 
+    ///
     /// Supported API versions: 0-12
     pub name: Option<super::TopicName>,
 
@@ -39,7 +40,7 @@ pub struct MetadataRequestTopic {
 impl Builder for MetadataRequestTopic {
     type Builder = MetadataRequestTopicBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         MetadataRequestTopicBuilder::default()
     }
 }
@@ -57,7 +58,10 @@ impl Encodable for MetadataRequestTopic {
         if version >= 9 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -79,7 +83,10 @@ impl Encodable for MetadataRequestTopic {
         if version >= 9 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -141,22 +148,22 @@ impl Message for MetadataRequestTopic {
 #[builder(default)]
 pub struct MetadataRequest {
     /// The topics to fetch metadata for.
-    /// 
+    ///
     /// Supported API versions: 0-12
     pub topics: Option<Vec<MetadataRequestTopic>>,
 
     /// If this is true, the broker may auto-create topics that we requested which do not already exist, if it is configured to do so.
-    /// 
+    ///
     /// Supported API versions: 4-12
     pub allow_auto_topic_creation: bool,
 
     /// Whether to include cluster authorized operations.
-    /// 
+    ///
     /// Supported API versions: 8-10
     pub include_cluster_authorized_operations: bool,
 
     /// Whether to include topic authorized operations.
-    /// 
+    ///
     /// Supported API versions: 8-12
     pub include_topic_authorized_operations: bool,
 
@@ -167,7 +174,7 @@ pub struct MetadataRequest {
 impl Builder for MetadataRequest {
     type Builder = MetadataRequestBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         MetadataRequestBuilder::default()
     }
 }
@@ -183,27 +190,30 @@ impl Encodable for MetadataRequest {
             types::Boolean.encode(buf, &self.allow_auto_topic_creation)?;
         } else {
             if !self.allow_auto_topic_creation {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 8 && version <= 10 {
             types::Boolean.encode(buf, &self.include_cluster_authorized_operations)?;
         } else {
             if self.include_cluster_authorized_operations {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 8 {
             types::Boolean.encode(buf, &self.include_topic_authorized_operations)?;
         } else {
             if self.include_topic_authorized_operations {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 9 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -215,7 +225,8 @@ impl Encodable for MetadataRequest {
     fn compute_size(&self, version: i16) -> Result<usize, EncodeError> {
         let mut total_size = 0;
         if version >= 9 {
-            total_size += types::CompactArray(types::Struct { version }).compute_size(&self.topics)?;
+            total_size +=
+                types::CompactArray(types::Struct { version }).compute_size(&self.topics)?;
         } else {
             total_size += types::Array(types::Struct { version }).compute_size(&self.topics)?;
         }
@@ -223,27 +234,31 @@ impl Encodable for MetadataRequest {
             total_size += types::Boolean.compute_size(&self.allow_auto_topic_creation)?;
         } else {
             if !self.allow_auto_topic_creation {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 8 && version <= 10 {
-            total_size += types::Boolean.compute_size(&self.include_cluster_authorized_operations)?;
+            total_size +=
+                types::Boolean.compute_size(&self.include_cluster_authorized_operations)?;
         } else {
             if self.include_cluster_authorized_operations {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 8 {
             total_size += types::Boolean.compute_size(&self.include_topic_authorized_operations)?;
         } else {
             if self.include_topic_authorized_operations {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 9 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -322,4 +337,3 @@ impl HeaderVersion for MetadataRequest {
         }
     }
 }
-

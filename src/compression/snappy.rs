@@ -4,7 +4,7 @@ use snap::raw::*;
 use crate::protocol::buf::{ByteBuf, ByteBufMut};
 use crate::protocol::{DecodeError, EncodeError};
 
-use super::{Compressor, Decompressor, compression_err, decompression_err};
+use super::{compression_err, decompression_err, Compressor, Decompressor};
 
 /// Snappy compression algorithm. See [Kafka's broker configuration](https://kafka.apache.org/documentation/#brokerconfigs_compression.type)
 /// for more information.
@@ -45,7 +45,9 @@ impl<B: ByteBuf> Decompressor<B> for Snappy {
         tmp.resize(actual_len, 0);
 
         // Decompress directly from the input buffer
-        Decoder::new().decompress(&buf, &mut tmp).map_err(decompression_err)?;
+        Decoder::new()
+            .decompress(&buf, &mut tmp)
+            .map_err(decompression_err)?;
 
         f(&mut tmp.into())
     }

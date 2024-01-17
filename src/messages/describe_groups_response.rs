@@ -12,10 +12,11 @@ use log::error;
 use uuid::Uuid;
 
 use crate::protocol::{
-    Encodable, Decodable, MapEncodable, MapDecodable, Encoder, Decoder, EncodeError, DecodeError, Message, HeaderVersion, VersionRange,
-    types, write_unknown_tagged_fields, compute_unknown_tagged_fields_size, StrBytes, buf::{ByteBuf, ByteBufMut}, Builder
+    buf::{ByteBuf, ByteBufMut},
+    compute_unknown_tagged_fields_size, types, write_unknown_tagged_fields, Builder, Decodable,
+    DecodeError, Decoder, Encodable, EncodeError, Encoder, HeaderVersion, MapDecodable,
+    MapEncodable, Message, StrBytes, VersionRange,
 };
-
 
 /// Valid versions: 0-5
 #[non_exhaustive]
@@ -23,32 +24,32 @@ use crate::protocol::{
 #[builder(default)]
 pub struct DescribedGroupMember {
     /// The member ID assigned by the group coordinator.
-    /// 
+    ///
     /// Supported API versions: 0-5
     pub member_id: StrBytes,
 
     /// The unique identifier of the consumer instance provided by end user.
-    /// 
+    ///
     /// Supported API versions: 4-5
     pub group_instance_id: Option<StrBytes>,
 
     /// The client ID used in the member's latest join group request.
-    /// 
+    ///
     /// Supported API versions: 0-5
     pub client_id: StrBytes,
 
     /// The client host.
-    /// 
+    ///
     /// Supported API versions: 0-5
     pub client_host: StrBytes,
 
     /// The metadata corresponding to the current group protocol in use.
-    /// 
+    ///
     /// Supported API versions: 0-5
     pub member_metadata: Bytes,
 
     /// The current assignment provided by the group leader.
-    /// 
+    ///
     /// Supported API versions: 0-5
     pub member_assignment: Bytes,
 
@@ -59,7 +60,7 @@ pub struct DescribedGroupMember {
 impl Builder for DescribedGroupMember {
     type Builder = DescribedGroupMemberBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         DescribedGroupMemberBuilder::default()
     }
 }
@@ -101,7 +102,10 @@ impl Encodable for DescribedGroupMember {
         if version >= 5 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -147,7 +151,10 @@ impl Encodable for DescribedGroupMember {
         if version >= 5 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -241,37 +248,37 @@ impl Message for DescribedGroupMember {
 #[builder(default)]
 pub struct DescribedGroup {
     /// The describe error, or 0 if there was no error.
-    /// 
+    ///
     /// Supported API versions: 0-5
     pub error_code: i16,
 
     /// The group ID string.
-    /// 
+    ///
     /// Supported API versions: 0-5
     pub group_id: super::GroupId,
 
     /// The group state string, or the empty string.
-    /// 
+    ///
     /// Supported API versions: 0-5
     pub group_state: StrBytes,
 
     /// The group protocol type, or the empty string.
-    /// 
+    ///
     /// Supported API versions: 0-5
     pub protocol_type: StrBytes,
 
     /// The group protocol data, or the empty string.
-    /// 
+    ///
     /// Supported API versions: 0-5
     pub protocol_data: StrBytes,
 
     /// The group members.
-    /// 
+    ///
     /// Supported API versions: 0-5
     pub members: Vec<DescribedGroupMember>,
 
     /// 32-bit bitfield to represent authorized operations for this group.
-    /// 
+    ///
     /// Supported API versions: 3-5
     pub authorized_operations: i32,
 
@@ -282,7 +289,7 @@ pub struct DescribedGroup {
 impl Builder for DescribedGroup {
     type Builder = DescribedGroupBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         DescribedGroupBuilder::default()
     }
 }
@@ -319,13 +326,16 @@ impl Encodable for DescribedGroup {
             types::Int32.encode(buf, &self.authorized_operations)?;
         } else {
             if self.authorized_operations != -2147483648 {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 5 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -358,7 +368,8 @@ impl Encodable for DescribedGroup {
             total_size += types::String.compute_size(&self.protocol_data)?;
         }
         if version >= 5 {
-            total_size += types::CompactArray(types::Struct { version }).compute_size(&self.members)?;
+            total_size +=
+                types::CompactArray(types::Struct { version }).compute_size(&self.members)?;
         } else {
             total_size += types::Array(types::Struct { version }).compute_size(&self.members)?;
         }
@@ -366,13 +377,16 @@ impl Encodable for DescribedGroup {
             total_size += types::Int32.compute_size(&self.authorized_operations)?;
         } else {
             if self.authorized_operations != -2147483648 {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 5 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -465,12 +479,12 @@ impl Message for DescribedGroup {
 #[builder(default)]
 pub struct DescribeGroupsResponse {
     /// The duration in milliseconds for which the request was throttled due to a quota violation, or zero if the request did not violate any quota.
-    /// 
+    ///
     /// Supported API versions: 1-5
     pub throttle_time_ms: i32,
 
     /// Each described group.
-    /// 
+    ///
     /// Supported API versions: 0-5
     pub groups: Vec<DescribedGroup>,
 
@@ -481,7 +495,7 @@ pub struct DescribeGroupsResponse {
 impl Builder for DescribeGroupsResponse {
     type Builder = DescribeGroupsResponseBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         DescribeGroupsResponseBuilder::default()
     }
 }
@@ -499,7 +513,10 @@ impl Encodable for DescribeGroupsResponse {
         if version >= 5 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -514,14 +531,18 @@ impl Encodable for DescribeGroupsResponse {
             total_size += types::Int32.compute_size(&self.throttle_time_ms)?;
         }
         if version >= 5 {
-            total_size += types::CompactArray(types::Struct { version }).compute_size(&self.groups)?;
+            total_size +=
+                types::CompactArray(types::Struct { version }).compute_size(&self.groups)?;
         } else {
             total_size += types::Array(types::Struct { version }).compute_size(&self.groups)?;
         }
         if version >= 5 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -586,4 +607,3 @@ impl HeaderVersion for DescribeGroupsResponse {
         }
     }
 }
-

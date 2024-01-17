@@ -12,10 +12,11 @@ use log::error;
 use uuid::Uuid;
 
 use crate::protocol::{
-    Encodable, Decodable, MapEncodable, MapDecodable, Encoder, Decoder, EncodeError, DecodeError, Message, HeaderVersion, VersionRange,
-    types, write_unknown_tagged_fields, compute_unknown_tagged_fields_size, StrBytes, buf::{ByteBuf, ByteBufMut}, Builder
+    buf::{ByteBuf, ByteBufMut},
+    compute_unknown_tagged_fields_size, types, write_unknown_tagged_fields, Builder, Decodable,
+    DecodeError, Decoder, Encodable, EncodeError, Encoder, HeaderVersion, MapDecodable,
+    MapEncodable, Message, StrBytes, VersionRange,
 };
-
 
 /// Valid versions: 0-2
 #[non_exhaustive]
@@ -23,17 +24,17 @@ use crate::protocol::{
 #[builder(default)]
 pub struct PartitionResult {
     /// The partition id
-    /// 
+    ///
     /// Supported API versions: 0-2
     pub partition_id: i32,
 
     /// The result error, or zero if there was no error.
-    /// 
+    ///
     /// Supported API versions: 0-2
     pub error_code: i16,
 
     /// The result message, or null if there was no error.
-    /// 
+    ///
     /// Supported API versions: 0-2
     pub error_message: Option<StrBytes>,
 
@@ -44,7 +45,7 @@ pub struct PartitionResult {
 impl Builder for PartitionResult {
     type Builder = PartitionResultBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         PartitionResultBuilder::default()
     }
 }
@@ -61,7 +62,10 @@ impl Encodable for PartitionResult {
         if version >= 2 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -82,7 +86,10 @@ impl Encodable for PartitionResult {
         if version >= 2 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -143,12 +150,12 @@ impl Message for PartitionResult {
 #[builder(default)]
 pub struct ReplicaElectionResult {
     /// The topic name
-    /// 
+    ///
     /// Supported API versions: 0-2
     pub topic: super::TopicName,
 
     /// The results for each partition
-    /// 
+    ///
     /// Supported API versions: 0-2
     pub partition_result: Vec<PartitionResult>,
 
@@ -159,7 +166,7 @@ pub struct ReplicaElectionResult {
 impl Builder for ReplicaElectionResult {
     type Builder = ReplicaElectionResultBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         ReplicaElectionResultBuilder::default()
     }
 }
@@ -179,7 +186,10 @@ impl Encodable for ReplicaElectionResult {
         if version >= 2 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -196,14 +206,19 @@ impl Encodable for ReplicaElectionResult {
             total_size += types::String.compute_size(&self.topic)?;
         }
         if version >= 2 {
-            total_size += types::CompactArray(types::Struct { version }).compute_size(&self.partition_result)?;
+            total_size += types::CompactArray(types::Struct { version })
+                .compute_size(&self.partition_result)?;
         } else {
-            total_size += types::Array(types::Struct { version }).compute_size(&self.partition_result)?;
+            total_size +=
+                types::Array(types::Struct { version }).compute_size(&self.partition_result)?;
         }
         if version >= 2 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -265,17 +280,17 @@ impl Message for ReplicaElectionResult {
 #[builder(default)]
 pub struct ElectLeadersResponse {
     /// The duration in milliseconds for which the request was throttled due to a quota violation, or zero if the request did not violate any quota.
-    /// 
+    ///
     /// Supported API versions: 0-2
     pub throttle_time_ms: i32,
 
     /// The top level response error code.
-    /// 
+    ///
     /// Supported API versions: 1-2
     pub error_code: i16,
 
     /// The election results, or an empty array if the requester did not have permission and the request asks for all partitions.
-    /// 
+    ///
     /// Supported API versions: 0-2
     pub replica_election_results: Vec<ReplicaElectionResult>,
 
@@ -286,7 +301,7 @@ pub struct ElectLeadersResponse {
 impl Builder for ElectLeadersResponse {
     type Builder = ElectLeadersResponseBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         ElectLeadersResponseBuilder::default()
     }
 }
@@ -298,18 +313,22 @@ impl Encodable for ElectLeadersResponse {
             types::Int16.encode(buf, &self.error_code)?;
         } else {
             if self.error_code != 0 {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 2 {
-            types::CompactArray(types::Struct { version }).encode(buf, &self.replica_election_results)?;
+            types::CompactArray(types::Struct { version })
+                .encode(buf, &self.replica_election_results)?;
         } else {
             types::Array(types::Struct { version }).encode(buf, &self.replica_election_results)?;
         }
         if version >= 2 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -325,18 +344,23 @@ impl Encodable for ElectLeadersResponse {
             total_size += types::Int16.compute_size(&self.error_code)?;
         } else {
             if self.error_code != 0 {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 2 {
-            total_size += types::CompactArray(types::Struct { version }).compute_size(&self.replica_election_results)?;
+            total_size += types::CompactArray(types::Struct { version })
+                .compute_size(&self.replica_election_results)?;
         } else {
-            total_size += types::Array(types::Struct { version }).compute_size(&self.replica_election_results)?;
+            total_size += types::Array(types::Struct { version })
+                .compute_size(&self.replica_election_results)?;
         }
         if version >= 2 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -404,4 +428,3 @@ impl HeaderVersion for ElectLeadersResponse {
         }
     }
 }
-

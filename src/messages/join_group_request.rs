@@ -12,10 +12,11 @@ use log::error;
 use uuid::Uuid;
 
 use crate::protocol::{
-    Encodable, Decodable, MapEncodable, MapDecodable, Encoder, Decoder, EncodeError, DecodeError, Message, HeaderVersion, VersionRange,
-    types, write_unknown_tagged_fields, compute_unknown_tagged_fields_size, StrBytes, buf::{ByteBuf, ByteBufMut}, Builder
+    buf::{ByteBuf, ByteBufMut},
+    compute_unknown_tagged_fields_size, types, write_unknown_tagged_fields, Builder, Decodable,
+    DecodeError, Decoder, Encodable, EncodeError, Encoder, HeaderVersion, MapDecodable,
+    MapEncodable, Message, StrBytes, VersionRange,
 };
-
 
 /// Valid versions: 0-9
 #[non_exhaustive]
@@ -23,7 +24,7 @@ use crate::protocol::{
 #[builder(default)]
 pub struct JoinGroupRequestProtocol {
     /// The protocol metadata.
-    /// 
+    ///
     /// Supported API versions: 0-9
     pub metadata: Bytes,
 
@@ -34,14 +35,19 @@ pub struct JoinGroupRequestProtocol {
 impl Builder for JoinGroupRequestProtocol {
     type Builder = JoinGroupRequestProtocolBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         JoinGroupRequestProtocolBuilder::default()
     }
 }
 
 impl MapEncodable for JoinGroupRequestProtocol {
     type Key = StrBytes;
-    fn encode<B: ByteBufMut>(&self, key: &Self::Key, buf: &mut B, version: i16) -> Result<(), EncodeError> {
+    fn encode<B: ByteBufMut>(
+        &self,
+        key: &Self::Key,
+        buf: &mut B,
+        version: i16,
+    ) -> Result<(), EncodeError> {
         if version >= 6 {
             types::CompactString.encode(buf, key)?;
         } else {
@@ -55,7 +61,10 @@ impl MapEncodable for JoinGroupRequestProtocol {
         if version >= 6 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -79,7 +88,10 @@ impl MapEncodable for JoinGroupRequestProtocol {
         if version >= 6 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -114,10 +126,13 @@ impl MapDecodable for JoinGroupRequestProtocol {
                 unknown_tagged_fields.insert(tag as i32, unknown_value);
             }
         }
-        Ok((key_field, Self {
-            metadata,
-            unknown_tagged_fields,
-        }))
+        Ok((
+            key_field,
+            Self {
+                metadata,
+                unknown_tagged_fields,
+            },
+        ))
     }
 }
 
@@ -140,42 +155,42 @@ impl Message for JoinGroupRequestProtocol {
 #[builder(default)]
 pub struct JoinGroupRequest {
     /// The group identifier.
-    /// 
+    ///
     /// Supported API versions: 0-9
     pub group_id: super::GroupId,
 
     /// The coordinator considers the consumer dead if it receives no heartbeat after this timeout in milliseconds.
-    /// 
+    ///
     /// Supported API versions: 0-9
     pub session_timeout_ms: i32,
 
     /// The maximum time in milliseconds that the coordinator will wait for each member to rejoin when rebalancing the group.
-    /// 
+    ///
     /// Supported API versions: 1-9
     pub rebalance_timeout_ms: i32,
 
     /// The member id assigned by the group coordinator.
-    /// 
+    ///
     /// Supported API versions: 0-9
     pub member_id: StrBytes,
 
     /// The unique identifier of the consumer instance provided by end user.
-    /// 
+    ///
     /// Supported API versions: 5-9
     pub group_instance_id: Option<StrBytes>,
 
     /// The unique name the for class of protocols implemented by the group we want to join.
-    /// 
+    ///
     /// Supported API versions: 0-9
     pub protocol_type: StrBytes,
 
     /// The list of protocols that the member supports.
-    /// 
+    ///
     /// Supported API versions: 0-9
     pub protocols: indexmap::IndexMap<StrBytes, JoinGroupRequestProtocol>,
 
     /// The reason why the member (re-)joins the group.
-    /// 
+    ///
     /// Supported API versions: 8-9
     pub reason: Option<StrBytes>,
 
@@ -186,7 +201,7 @@ pub struct JoinGroupRequest {
 impl Builder for JoinGroupRequest {
     type Builder = JoinGroupRequestBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         JoinGroupRequestBuilder::default()
     }
 }
@@ -215,7 +230,7 @@ impl Encodable for JoinGroupRequest {
             }
         } else {
             if !self.group_instance_id.is_none() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 6 {
@@ -234,7 +249,10 @@ impl Encodable for JoinGroupRequest {
         if version >= 6 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -267,7 +285,7 @@ impl Encodable for JoinGroupRequest {
             }
         } else {
             if !self.group_instance_id.is_none() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 6 {
@@ -276,7 +294,8 @@ impl Encodable for JoinGroupRequest {
             total_size += types::String.compute_size(&self.protocol_type)?;
         }
         if version >= 6 {
-            total_size += types::CompactArray(types::Struct { version }).compute_size(&self.protocols)?;
+            total_size +=
+                types::CompactArray(types::Struct { version }).compute_size(&self.protocols)?;
         } else {
             total_size += types::Array(types::Struct { version }).compute_size(&self.protocols)?;
         }
@@ -286,7 +305,10 @@ impl Encodable for JoinGroupRequest {
         if version >= 6 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -393,4 +415,3 @@ impl HeaderVersion for JoinGroupRequest {
         }
     }
 }
-

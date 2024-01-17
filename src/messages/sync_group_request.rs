@@ -12,10 +12,11 @@ use log::error;
 use uuid::Uuid;
 
 use crate::protocol::{
-    Encodable, Decodable, MapEncodable, MapDecodable, Encoder, Decoder, EncodeError, DecodeError, Message, HeaderVersion, VersionRange,
-    types, write_unknown_tagged_fields, compute_unknown_tagged_fields_size, StrBytes, buf::{ByteBuf, ByteBufMut}, Builder
+    buf::{ByteBuf, ByteBufMut},
+    compute_unknown_tagged_fields_size, types, write_unknown_tagged_fields, Builder, Decodable,
+    DecodeError, Decoder, Encodable, EncodeError, Encoder, HeaderVersion, MapDecodable,
+    MapEncodable, Message, StrBytes, VersionRange,
 };
-
 
 /// Valid versions: 0-5
 #[non_exhaustive]
@@ -23,12 +24,12 @@ use crate::protocol::{
 #[builder(default)]
 pub struct SyncGroupRequestAssignment {
     /// The ID of the member to assign.
-    /// 
+    ///
     /// Supported API versions: 0-5
     pub member_id: StrBytes,
 
     /// The member assignment.
-    /// 
+    ///
     /// Supported API versions: 0-5
     pub assignment: Bytes,
 
@@ -39,7 +40,7 @@ pub struct SyncGroupRequestAssignment {
 impl Builder for SyncGroupRequestAssignment {
     type Builder = SyncGroupRequestAssignmentBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         SyncGroupRequestAssignmentBuilder::default()
     }
 }
@@ -59,7 +60,10 @@ impl Encodable for SyncGroupRequestAssignment {
         if version >= 4 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -83,7 +87,10 @@ impl Encodable for SyncGroupRequestAssignment {
         if version >= 4 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -145,37 +152,37 @@ impl Message for SyncGroupRequestAssignment {
 #[builder(default)]
 pub struct SyncGroupRequest {
     /// The unique group identifier.
-    /// 
+    ///
     /// Supported API versions: 0-5
     pub group_id: super::GroupId,
 
     /// The generation of the group.
-    /// 
+    ///
     /// Supported API versions: 0-5
     pub generation_id: i32,
 
     /// The member ID assigned by the group.
-    /// 
+    ///
     /// Supported API versions: 0-5
     pub member_id: StrBytes,
 
     /// The unique identifier of the consumer instance provided by end user.
-    /// 
+    ///
     /// Supported API versions: 3-5
     pub group_instance_id: Option<StrBytes>,
 
     /// The group protocol type.
-    /// 
+    ///
     /// Supported API versions: 5
     pub protocol_type: Option<StrBytes>,
 
     /// The group protocol name.
-    /// 
+    ///
     /// Supported API versions: 5
     pub protocol_name: Option<StrBytes>,
 
     /// Each assignment.
-    /// 
+    ///
     /// Supported API versions: 0-5
     pub assignments: Vec<SyncGroupRequestAssignment>,
 
@@ -186,7 +193,7 @@ pub struct SyncGroupRequest {
 impl Builder for SyncGroupRequest {
     type Builder = SyncGroupRequestBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         SyncGroupRequestBuilder::default()
     }
 }
@@ -212,7 +219,7 @@ impl Encodable for SyncGroupRequest {
             }
         } else {
             if !self.group_instance_id.is_none() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 5 {
@@ -229,7 +236,10 @@ impl Encodable for SyncGroupRequest {
         if version >= 4 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -259,7 +269,7 @@ impl Encodable for SyncGroupRequest {
             }
         } else {
             if !self.group_instance_id.is_none() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 5 {
@@ -269,14 +279,19 @@ impl Encodable for SyncGroupRequest {
             total_size += types::CompactString.compute_size(&self.protocol_name)?;
         }
         if version >= 4 {
-            total_size += types::CompactArray(types::Struct { version }).compute_size(&self.assignments)?;
+            total_size +=
+                types::CompactArray(types::Struct { version }).compute_size(&self.assignments)?;
         } else {
-            total_size += types::Array(types::Struct { version }).compute_size(&self.assignments)?;
+            total_size +=
+                types::Array(types::Struct { version }).compute_size(&self.assignments)?;
         }
         if version >= 4 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -376,4 +391,3 @@ impl HeaderVersion for SyncGroupRequest {
         }
     }
 }
-
