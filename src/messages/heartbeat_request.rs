@@ -12,10 +12,11 @@ use log::error;
 use uuid::Uuid;
 
 use crate::protocol::{
-    Encodable, Decodable, MapEncodable, MapDecodable, Encoder, Decoder, EncodeError, DecodeError, Message, HeaderVersion, VersionRange,
-    types, write_unknown_tagged_fields, compute_unknown_tagged_fields_size, StrBytes, buf::{ByteBuf, ByteBufMut}, Builder
+    buf::{ByteBuf, ByteBufMut},
+    compute_unknown_tagged_fields_size, types, write_unknown_tagged_fields, Builder, Decodable,
+    DecodeError, Decoder, Encodable, EncodeError, Encoder, HeaderVersion, MapDecodable,
+    MapEncodable, Message, StrBytes, VersionRange,
 };
-
 
 /// Valid versions: 0-4
 #[non_exhaustive]
@@ -23,22 +24,22 @@ use crate::protocol::{
 #[builder(default)]
 pub struct HeartbeatRequest {
     /// The group id.
-    /// 
+    ///
     /// Supported API versions: 0-4
     pub group_id: super::GroupId,
 
     /// The generation of the group.
-    /// 
+    ///
     /// Supported API versions: 0-4
     pub generation_id: i32,
 
     /// The member ID.
-    /// 
+    ///
     /// Supported API versions: 0-4
     pub member_id: StrBytes,
 
     /// The unique identifier of the consumer instance provided by end user.
-    /// 
+    ///
     /// Supported API versions: 3-4
     pub group_instance_id: Option<StrBytes>,
 
@@ -49,7 +50,7 @@ pub struct HeartbeatRequest {
 impl Builder for HeartbeatRequest {
     type Builder = HeartbeatRequestBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         HeartbeatRequestBuilder::default()
     }
 }
@@ -75,13 +76,16 @@ impl Encodable for HeartbeatRequest {
             }
         } else {
             if !self.group_instance_id.is_none() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 4 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -111,13 +115,16 @@ impl Encodable for HeartbeatRequest {
             }
         } else {
             if !self.group_instance_id.is_none() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 4 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -196,4 +203,3 @@ impl HeaderVersion for HeartbeatRequest {
         }
     }
 }
-

@@ -12,10 +12,11 @@ use log::error;
 use uuid::Uuid;
 
 use crate::protocol::{
-    Encodable, Decodable, MapEncodable, MapDecodable, Encoder, Decoder, EncodeError, DecodeError, Message, HeaderVersion, VersionRange,
-    types, write_unknown_tagged_fields, compute_unknown_tagged_fields_size, StrBytes, buf::{ByteBuf, ByteBufMut}, Builder
+    buf::{ByteBuf, ByteBufMut},
+    compute_unknown_tagged_fields_size, types, write_unknown_tagged_fields, Builder, Decodable,
+    DecodeError, Decoder, Encodable, EncodeError, Encoder, HeaderVersion, MapDecodable,
+    MapEncodable, Message, StrBytes, VersionRange,
 };
-
 
 /// Valid versions: 0-3
 #[non_exhaustive]
@@ -23,22 +24,22 @@ use crate::protocol::{
 #[builder(default)]
 pub struct EndTxnRequest {
     /// The ID of the transaction to end.
-    /// 
+    ///
     /// Supported API versions: 0-3
     pub transactional_id: super::TransactionalId,
 
     /// The producer ID.
-    /// 
+    ///
     /// Supported API versions: 0-3
     pub producer_id: super::ProducerId,
 
     /// The current epoch associated with the producer.
-    /// 
+    ///
     /// Supported API versions: 0-3
     pub producer_epoch: i16,
 
     /// True if the transaction was committed, false if it was aborted.
-    /// 
+    ///
     /// Supported API versions: 0-3
     pub committed: bool,
 
@@ -49,7 +50,7 @@ pub struct EndTxnRequest {
 impl Builder for EndTxnRequest {
     type Builder = EndTxnRequestBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         EndTxnRequestBuilder::default()
     }
 }
@@ -67,7 +68,10 @@ impl Encodable for EndTxnRequest {
         if version >= 3 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -89,7 +93,10 @@ impl Encodable for EndTxnRequest {
         if version >= 3 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -156,4 +163,3 @@ impl HeaderVersion for EndTxnRequest {
         }
     }
 }
-

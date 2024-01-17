@@ -12,10 +12,11 @@ use log::error;
 use uuid::Uuid;
 
 use crate::protocol::{
-    Encodable, Decodable, MapEncodable, MapDecodable, Encoder, Decoder, EncodeError, DecodeError, Message, HeaderVersion, VersionRange,
-    types, write_unknown_tagged_fields, compute_unknown_tagged_fields_size, StrBytes, buf::{ByteBuf, ByteBufMut}, Builder
+    buf::{ByteBuf, ByteBufMut},
+    compute_unknown_tagged_fields_size, types, write_unknown_tagged_fields, Builder, Decodable,
+    DecodeError, Decoder, Encodable, EncodeError, Encoder, HeaderVersion, MapDecodable,
+    MapEncodable, Message, StrBytes, VersionRange,
 };
-
 
 /// Valid versions: 0-8
 #[non_exhaustive]
@@ -23,27 +24,27 @@ use crate::protocol::{
 #[builder(default)]
 pub struct OffsetCommitRequestPartition {
     /// The partition index.
-    /// 
+    ///
     /// Supported API versions: 0-8
     pub partition_index: i32,
 
     /// The message offset to be committed.
-    /// 
+    ///
     /// Supported API versions: 0-8
     pub committed_offset: i64,
 
     /// The leader epoch of this partition.
-    /// 
+    ///
     /// Supported API versions: 6-8
     pub committed_leader_epoch: i32,
 
     /// The timestamp of the commit.
-    /// 
+    ///
     /// Supported API versions: 1
     pub commit_timestamp: i64,
 
     /// Any associated metadata the client wants to keep.
-    /// 
+    ///
     /// Supported API versions: 0-8
     pub committed_metadata: Option<StrBytes>,
 
@@ -54,7 +55,7 @@ pub struct OffsetCommitRequestPartition {
 impl Builder for OffsetCommitRequestPartition {
     type Builder = OffsetCommitRequestPartitionBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         OffsetCommitRequestPartitionBuilder::default()
     }
 }
@@ -70,7 +71,7 @@ impl Encodable for OffsetCommitRequestPartition {
             types::Int64.encode(buf, &self.commit_timestamp)?;
         } else {
             if self.commit_timestamp != -1 {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 8 {
@@ -81,7 +82,10 @@ impl Encodable for OffsetCommitRequestPartition {
         if version >= 8 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -101,7 +105,7 @@ impl Encodable for OffsetCommitRequestPartition {
             total_size += types::Int64.compute_size(&self.commit_timestamp)?;
         } else {
             if self.commit_timestamp != -1 {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 8 {
@@ -112,7 +116,10 @@ impl Encodable for OffsetCommitRequestPartition {
         if version >= 8 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -187,12 +194,12 @@ impl Message for OffsetCommitRequestPartition {
 #[builder(default)]
 pub struct OffsetCommitRequestTopic {
     /// The topic name.
-    /// 
+    ///
     /// Supported API versions: 0-8
     pub name: super::TopicName,
 
     /// Each partition to commit offsets for.
-    /// 
+    ///
     /// Supported API versions: 0-8
     pub partitions: Vec<OffsetCommitRequestPartition>,
 
@@ -203,7 +210,7 @@ pub struct OffsetCommitRequestTopic {
 impl Builder for OffsetCommitRequestTopic {
     type Builder = OffsetCommitRequestTopicBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         OffsetCommitRequestTopicBuilder::default()
     }
 }
@@ -223,7 +230,10 @@ impl Encodable for OffsetCommitRequestTopic {
         if version >= 8 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -240,14 +250,18 @@ impl Encodable for OffsetCommitRequestTopic {
             total_size += types::String.compute_size(&self.name)?;
         }
         if version >= 8 {
-            total_size += types::CompactArray(types::Struct { version }).compute_size(&self.partitions)?;
+            total_size +=
+                types::CompactArray(types::Struct { version }).compute_size(&self.partitions)?;
         } else {
             total_size += types::Array(types::Struct { version }).compute_size(&self.partitions)?;
         }
         if version >= 8 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -309,32 +323,32 @@ impl Message for OffsetCommitRequestTopic {
 #[builder(default)]
 pub struct OffsetCommitRequest {
     /// The unique group identifier.
-    /// 
+    ///
     /// Supported API versions: 0-8
     pub group_id: super::GroupId,
 
     /// The generation of the group.
-    /// 
+    ///
     /// Supported API versions: 1-8
     pub generation_id: i32,
 
     /// The member ID assigned by the group coordinator.
-    /// 
+    ///
     /// Supported API versions: 1-8
     pub member_id: StrBytes,
 
     /// The unique identifier of the consumer instance provided by end user.
-    /// 
+    ///
     /// Supported API versions: 7-8
     pub group_instance_id: Option<StrBytes>,
 
     /// The time period in ms to retain the offset.
-    /// 
+    ///
     /// Supported API versions: 2-4
     pub retention_time_ms: i64,
 
     /// The topics to commit offsets for.
-    /// 
+    ///
     /// Supported API versions: 0-8
     pub topics: Vec<OffsetCommitRequestTopic>,
 
@@ -345,7 +359,7 @@ pub struct OffsetCommitRequest {
 impl Builder for OffsetCommitRequest {
     type Builder = OffsetCommitRequestBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         OffsetCommitRequestBuilder::default()
     }
 }
@@ -375,7 +389,7 @@ impl Encodable for OffsetCommitRequest {
             }
         } else {
             if !self.group_instance_id.is_none() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 2 && version <= 4 {
@@ -389,7 +403,10 @@ impl Encodable for OffsetCommitRequest {
         if version >= 8 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -423,21 +440,25 @@ impl Encodable for OffsetCommitRequest {
             }
         } else {
             if !self.group_instance_id.is_none() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 2 && version <= 4 {
             total_size += types::Int64.compute_size(&self.retention_time_ms)?;
         }
         if version >= 8 {
-            total_size += types::CompactArray(types::Struct { version }).compute_size(&self.topics)?;
+            total_size +=
+                types::CompactArray(types::Struct { version }).compute_size(&self.topics)?;
         } else {
             total_size += types::Array(types::Struct { version }).compute_size(&self.topics)?;
         }
         if version >= 8 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -538,4 +559,3 @@ impl HeaderVersion for OffsetCommitRequest {
         }
     }
 }
-

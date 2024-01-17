@@ -12,18 +12,19 @@ use log::error;
 use uuid::Uuid;
 
 use crate::protocol::{
-    Encodable, Decodable, MapEncodable, MapDecodable, Encoder, Decoder, EncodeError, DecodeError, Message, HeaderVersion, VersionRange,
-    types, write_unknown_tagged_fields, compute_unknown_tagged_fields_size, StrBytes, buf::{ByteBuf, ByteBufMut}, Builder
+    buf::{ByteBuf, ByteBufMut},
+    compute_unknown_tagged_fields_size, types, write_unknown_tagged_fields, Builder, Decodable,
+    DecodeError, Decoder, Encodable, EncodeError, Encoder, HeaderVersion, MapDecodable,
+    MapEncodable, Message, StrBytes, VersionRange,
 };
-
 
 /// Valid versions: 0
 #[non_exhaustive]
 #[derive(Debug, Clone, PartialEq, derive_builder::Builder)]
 #[builder(default)]
 pub struct Voter {
-    /// 
-    /// 
+    ///
+    ///
     /// Supported API versions: 0
     pub voter_id: i32,
 
@@ -34,7 +35,7 @@ pub struct Voter {
 impl Builder for Voter {
     type Builder = VoterBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         VoterBuilder::default()
     }
 }
@@ -44,7 +45,10 @@ impl Encodable for Voter {
         types::Int32.encode(buf, &self.voter_id)?;
         let num_tagged_fields = self.unknown_tagged_fields.len();
         if num_tagged_fields > std::u32::MAX as usize {
-            error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+            error!(
+                "Too many tagged fields to encode ({} fields)",
+                num_tagged_fields
+            );
             return Err(EncodeError);
         }
         types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -57,7 +61,10 @@ impl Encodable for Voter {
         total_size += types::Int32.compute_size(&self.voter_id)?;
         let num_tagged_fields = self.unknown_tagged_fields.len();
         if num_tagged_fields > std::u32::MAX as usize {
-            error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+            error!(
+                "Too many tagged fields to encode ({} fields)",
+                num_tagged_fields
+            );
             return Err(EncodeError);
         }
         total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -105,22 +112,22 @@ impl Message for Voter {
 #[builder(default)]
 pub struct LeaderChangeMessage {
     /// The version of the leader change message
-    /// 
+    ///
     /// Supported API versions: 0
     pub version: i16,
 
     /// The ID of the newly elected leader
-    /// 
+    ///
     /// Supported API versions: 0
     pub leader_id: super::BrokerId,
 
     /// The set of voters in the quorum for this epoch
-    /// 
+    ///
     /// Supported API versions: 0
     pub voters: Vec<Voter>,
 
     /// The voters who voted for the leader at the time of election
-    /// 
+    ///
     /// Supported API versions: 0
     pub granting_voters: Vec<Voter>,
 
@@ -131,7 +138,7 @@ pub struct LeaderChangeMessage {
 impl Builder for LeaderChangeMessage {
     type Builder = LeaderChangeMessageBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         LeaderChangeMessageBuilder::default()
     }
 }
@@ -144,7 +151,10 @@ impl Encodable for LeaderChangeMessage {
         types::CompactArray(types::Struct { version }).encode(buf, &self.granting_voters)?;
         let num_tagged_fields = self.unknown_tagged_fields.len();
         if num_tagged_fields > std::u32::MAX as usize {
-            error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+            error!(
+                "Too many tagged fields to encode ({} fields)",
+                num_tagged_fields
+            );
             return Err(EncodeError);
         }
         types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -157,10 +167,14 @@ impl Encodable for LeaderChangeMessage {
         total_size += types::Int16.compute_size(&self.version)?;
         total_size += types::Int32.compute_size(&self.leader_id)?;
         total_size += types::CompactArray(types::Struct { version }).compute_size(&self.voters)?;
-        total_size += types::CompactArray(types::Struct { version }).compute_size(&self.granting_voters)?;
+        total_size +=
+            types::CompactArray(types::Struct { version }).compute_size(&self.granting_voters)?;
         let num_tagged_fields = self.unknown_tagged_fields.len();
         if num_tagged_fields > std::u32::MAX as usize {
-            error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+            error!(
+                "Too many tagged fields to encode ({} fields)",
+                num_tagged_fields
+            );
             return Err(EncodeError);
         }
         total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -210,4 +224,3 @@ impl Default for LeaderChangeMessage {
 impl Message for LeaderChangeMessage {
     const VERSIONS: VersionRange = VersionRange { min: 0, max: 0 };
 }
-

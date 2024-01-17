@@ -12,10 +12,11 @@ use log::error;
 use uuid::Uuid;
 
 use crate::protocol::{
-    Encodable, Decodable, MapEncodable, MapDecodable, Encoder, Decoder, EncodeError, DecodeError, Message, HeaderVersion, VersionRange,
-    types, write_unknown_tagged_fields, compute_unknown_tagged_fields_size, StrBytes, buf::{ByteBuf, ByteBufMut}, Builder
+    buf::{ByteBuf, ByteBufMut},
+    compute_unknown_tagged_fields_size, types, write_unknown_tagged_fields, Builder, Decodable,
+    DecodeError, Decoder, Encodable, EncodeError, Encoder, HeaderVersion, MapDecodable,
+    MapEncodable, Message, StrBytes, VersionRange,
 };
-
 
 /// Valid versions: 0
 #[non_exhaustive]
@@ -23,31 +24,30 @@ use crate::protocol::{
 #[builder(default)]
 pub struct PartitionData {
     /// The partition index.
-    /// 
+    ///
     /// Supported API versions: 0
     pub partition_index: i32,
 
-    /// 
-    /// 
+    ///
+    ///
     /// Supported API versions: 0
     pub error_code: i16,
 
     /// The ID of the current leader or -1 if the leader is unknown.
-    /// 
+    ///
     /// Supported API versions: 0
     pub leader_id: super::BrokerId,
 
     /// The latest known leader epoch
-    /// 
+    ///
     /// Supported API versions: 0
     pub leader_epoch: i32,
-
 }
 
 impl Builder for PartitionData {
     type Builder = PartitionDataBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         PartitionDataBuilder::default()
     }
 }
@@ -108,21 +108,20 @@ impl Message for PartitionData {
 #[builder(default)]
 pub struct TopicData {
     /// The topic name.
-    /// 
+    ///
     /// Supported API versions: 0
     pub topic_name: super::TopicName,
 
-    /// 
-    /// 
+    ///
+    ///
     /// Supported API versions: 0
     pub partitions: Vec<PartitionData>,
-
 }
 
 impl Builder for TopicData {
     type Builder = TopicDataBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         TopicDataBuilder::default()
     }
 }
@@ -173,21 +172,20 @@ impl Message for TopicData {
 #[builder(default)]
 pub struct EndQuorumEpochResponse {
     /// The top level error code.
-    /// 
+    ///
     /// Supported API versions: 0
     pub error_code: i16,
 
-    /// 
-    /// 
+    ///
+    ///
     /// Supported API versions: 0
     pub topics: Vec<TopicData>,
-
 }
 
 impl Builder for EndQuorumEpochResponse {
     type Builder = EndQuorumEpochResponseBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         EndQuorumEpochResponseBuilder::default()
     }
 }
@@ -212,10 +210,7 @@ impl Decodable for EndQuorumEpochResponse {
     fn decode<B: ByteBuf>(buf: &mut B, version: i16) -> Result<Self, DecodeError> {
         let error_code = types::Int16.decode(buf)?;
         let topics = types::Array(types::Struct { version }).decode(buf)?;
-        Ok(Self {
-            error_code,
-            topics,
-        })
+        Ok(Self { error_code, topics })
     }
 }
 
@@ -237,4 +232,3 @@ impl HeaderVersion for EndQuorumEpochResponse {
         0
     }
 }
-

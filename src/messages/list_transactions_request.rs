@@ -12,10 +12,11 @@ use log::error;
 use uuid::Uuid;
 
 use crate::protocol::{
-    Encodable, Decodable, MapEncodable, MapDecodable, Encoder, Decoder, EncodeError, DecodeError, Message, HeaderVersion, VersionRange,
-    types, write_unknown_tagged_fields, compute_unknown_tagged_fields_size, StrBytes, buf::{ByteBuf, ByteBufMut}, Builder
+    buf::{ByteBuf, ByteBufMut},
+    compute_unknown_tagged_fields_size, types, write_unknown_tagged_fields, Builder, Decodable,
+    DecodeError, Decoder, Encodable, EncodeError, Encoder, HeaderVersion, MapDecodable,
+    MapEncodable, Message, StrBytes, VersionRange,
 };
-
 
 /// Valid versions: 0
 #[non_exhaustive]
@@ -23,12 +24,12 @@ use crate::protocol::{
 #[builder(default)]
 pub struct ListTransactionsRequest {
     /// The transaction states to filter by: if empty, all transactions are returned; if non-empty, then only transactions matching one of the filtered states will be returned
-    /// 
+    ///
     /// Supported API versions: 0
     pub state_filters: Vec<StrBytes>,
 
     /// The producerIds to filter by: if empty, all transactions will be returned; if non-empty, only transactions which match one of the filtered producerIds will be returned
-    /// 
+    ///
     /// Supported API versions: 0
     pub producer_id_filters: Vec<super::ProducerId>,
 
@@ -39,7 +40,7 @@ pub struct ListTransactionsRequest {
 impl Builder for ListTransactionsRequest {
     type Builder = ListTransactionsRequestBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         ListTransactionsRequestBuilder::default()
     }
 }
@@ -50,7 +51,10 @@ impl Encodable for ListTransactionsRequest {
         types::CompactArray(types::Int64).encode(buf, &self.producer_id_filters)?;
         let num_tagged_fields = self.unknown_tagged_fields.len();
         if num_tagged_fields > std::u32::MAX as usize {
-            error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+            error!(
+                "Too many tagged fields to encode ({} fields)",
+                num_tagged_fields
+            );
             return Err(EncodeError);
         }
         types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -60,11 +64,15 @@ impl Encodable for ListTransactionsRequest {
     }
     fn compute_size(&self, version: i16) -> Result<usize, EncodeError> {
         let mut total_size = 0;
-        total_size += types::CompactArray(types::CompactString).compute_size(&self.state_filters)?;
+        total_size +=
+            types::CompactArray(types::CompactString).compute_size(&self.state_filters)?;
         total_size += types::CompactArray(types::Int64).compute_size(&self.producer_id_filters)?;
         let num_tagged_fields = self.unknown_tagged_fields.len();
         if num_tagged_fields > std::u32::MAX as usize {
-            error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+            error!(
+                "Too many tagged fields to encode ({} fields)",
+                num_tagged_fields
+            );
             return Err(EncodeError);
         }
         total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -114,4 +122,3 @@ impl HeaderVersion for ListTransactionsRequest {
         2
     }
 }
-

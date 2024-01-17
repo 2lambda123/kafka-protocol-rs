@@ -12,10 +12,11 @@ use log::error;
 use uuid::Uuid;
 
 use crate::protocol::{
-    Encodable, Decodable, MapEncodable, MapDecodable, Encoder, Decoder, EncodeError, DecodeError, Message, HeaderVersion, VersionRange,
-    types, write_unknown_tagged_fields, compute_unknown_tagged_fields_size, StrBytes, buf::{ByteBuf, ByteBufMut}, Builder
+    buf::{ByteBuf, ByteBufMut},
+    compute_unknown_tagged_fields_size, types, write_unknown_tagged_fields, Builder, Decodable,
+    DecodeError, Decoder, Encodable, EncodeError, Encoder, HeaderVersion, MapDecodable,
+    MapEncodable, Message, StrBytes, VersionRange,
 };
-
 
 /// Valid versions: 0-3
 #[non_exhaustive]
@@ -23,37 +24,37 @@ use crate::protocol::{
 #[builder(default)]
 pub struct DeleteAclsFilter {
     /// The resource type.
-    /// 
+    ///
     /// Supported API versions: 0-3
     pub resource_type_filter: i8,
 
     /// The resource name.
-    /// 
+    ///
     /// Supported API versions: 0-3
     pub resource_name_filter: Option<StrBytes>,
 
     /// The pattern type.
-    /// 
+    ///
     /// Supported API versions: 1-3
     pub pattern_type_filter: i8,
 
     /// The principal filter, or null to accept all principals.
-    /// 
+    ///
     /// Supported API versions: 0-3
     pub principal_filter: Option<StrBytes>,
 
     /// The host filter, or null to accept all hosts.
-    /// 
+    ///
     /// Supported API versions: 0-3
     pub host_filter: Option<StrBytes>,
 
     /// The ACL operation.
-    /// 
+    ///
     /// Supported API versions: 0-3
     pub operation: i8,
 
     /// The permission type.
-    /// 
+    ///
     /// Supported API versions: 0-3
     pub permission_type: i8,
 
@@ -64,7 +65,7 @@ pub struct DeleteAclsFilter {
 impl Builder for DeleteAclsFilter {
     type Builder = DeleteAclsFilterBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         DeleteAclsFilterBuilder::default()
     }
 }
@@ -81,7 +82,7 @@ impl Encodable for DeleteAclsFilter {
             types::Int8.encode(buf, &self.pattern_type_filter)?;
         } else {
             if self.pattern_type_filter != 3 {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 2 {
@@ -99,7 +100,10 @@ impl Encodable for DeleteAclsFilter {
         if version >= 2 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -120,7 +124,7 @@ impl Encodable for DeleteAclsFilter {
             total_size += types::Int8.compute_size(&self.pattern_type_filter)?;
         } else {
             if self.pattern_type_filter != 3 {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 2 {
@@ -138,7 +142,10 @@ impl Encodable for DeleteAclsFilter {
         if version >= 2 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -223,7 +230,7 @@ impl Message for DeleteAclsFilter {
 #[builder(default)]
 pub struct DeleteAclsRequest {
     /// The filters to use when deleting ACLs.
-    /// 
+    ///
     /// Supported API versions: 0-3
     pub filters: Vec<DeleteAclsFilter>,
 
@@ -234,7 +241,7 @@ pub struct DeleteAclsRequest {
 impl Builder for DeleteAclsRequest {
     type Builder = DeleteAclsRequestBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         DeleteAclsRequestBuilder::default()
     }
 }
@@ -249,7 +256,10 @@ impl Encodable for DeleteAclsRequest {
         if version >= 2 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -261,14 +271,18 @@ impl Encodable for DeleteAclsRequest {
     fn compute_size(&self, version: i16) -> Result<usize, EncodeError> {
         let mut total_size = 0;
         if version >= 2 {
-            total_size += types::CompactArray(types::Struct { version }).compute_size(&self.filters)?;
+            total_size +=
+                types::CompactArray(types::Struct { version }).compute_size(&self.filters)?;
         } else {
             total_size += types::Array(types::Struct { version }).compute_size(&self.filters)?;
         }
         if version >= 2 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -326,4 +340,3 @@ impl HeaderVersion for DeleteAclsRequest {
         }
     }
 }
-

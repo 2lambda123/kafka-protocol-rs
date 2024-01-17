@@ -12,10 +12,11 @@ use log::error;
 use uuid::Uuid;
 
 use crate::protocol::{
-    Encodable, Decodable, MapEncodable, MapDecodable, Encoder, Decoder, EncodeError, DecodeError, Message, HeaderVersion, VersionRange,
-    types, write_unknown_tagged_fields, compute_unknown_tagged_fields_size, StrBytes, buf::{ByteBuf, ByteBufMut}, Builder
+    buf::{ByteBuf, ByteBufMut},
+    compute_unknown_tagged_fields_size, types, write_unknown_tagged_fields, Builder, Decodable,
+    DecodeError, Decoder, Encodable, EncodeError, Encoder, HeaderVersion, MapDecodable,
+    MapEncodable, Message, StrBytes, VersionRange,
 };
-
 
 /// Valid versions: 0-1
 #[non_exhaustive]
@@ -23,12 +24,12 @@ use crate::protocol::{
 #[builder(default)]
 pub struct UpdatableFeatureResult {
     /// The feature update error code or `0` if the feature update succeeded.
-    /// 
+    ///
     /// Supported API versions: 0-1
     pub error_code: i16,
 
     /// The feature update error, or `null` if the feature update succeeded.
-    /// 
+    ///
     /// Supported API versions: 0-1
     pub error_message: Option<StrBytes>,
 
@@ -39,20 +40,28 @@ pub struct UpdatableFeatureResult {
 impl Builder for UpdatableFeatureResult {
     type Builder = UpdatableFeatureResultBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         UpdatableFeatureResultBuilder::default()
     }
 }
 
 impl MapEncodable for UpdatableFeatureResult {
     type Key = StrBytes;
-    fn encode<B: ByteBufMut>(&self, key: &Self::Key, buf: &mut B, version: i16) -> Result<(), EncodeError> {
+    fn encode<B: ByteBufMut>(
+        &self,
+        key: &Self::Key,
+        buf: &mut B,
+        version: i16,
+    ) -> Result<(), EncodeError> {
         types::CompactString.encode(buf, key)?;
         types::Int16.encode(buf, &self.error_code)?;
         types::CompactString.encode(buf, &self.error_message)?;
         let num_tagged_fields = self.unknown_tagged_fields.len();
         if num_tagged_fields > std::u32::MAX as usize {
-            error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+            error!(
+                "Too many tagged fields to encode ({} fields)",
+                num_tagged_fields
+            );
             return Err(EncodeError);
         }
         types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -67,7 +76,10 @@ impl MapEncodable for UpdatableFeatureResult {
         total_size += types::CompactString.compute_size(&self.error_message)?;
         let num_tagged_fields = self.unknown_tagged_fields.len();
         if num_tagged_fields > std::u32::MAX as usize {
-            error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+            error!(
+                "Too many tagged fields to encode ({} fields)",
+                num_tagged_fields
+            );
             return Err(EncodeError);
         }
         total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -92,11 +104,14 @@ impl MapDecodable for UpdatableFeatureResult {
             buf.try_copy_to_slice(&mut unknown_value)?;
             unknown_tagged_fields.insert(tag as i32, unknown_value);
         }
-        Ok((key_field, Self {
-            error_code,
-            error_message,
-            unknown_tagged_fields,
-        }))
+        Ok((
+            key_field,
+            Self {
+                error_code,
+                error_message,
+                unknown_tagged_fields,
+            },
+        ))
     }
 }
 
@@ -120,22 +135,22 @@ impl Message for UpdatableFeatureResult {
 #[builder(default)]
 pub struct UpdateFeaturesResponse {
     /// The duration in milliseconds for which the request was throttled due to a quota violation, or zero if the request did not violate any quota.
-    /// 
+    ///
     /// Supported API versions: 0-1
     pub throttle_time_ms: i32,
 
     /// The top-level error code, or `0` if there was no top-level error.
-    /// 
+    ///
     /// Supported API versions: 0-1
     pub error_code: i16,
 
     /// The top-level error message, or `null` if there was no top-level error.
-    /// 
+    ///
     /// Supported API versions: 0-1
     pub error_message: Option<StrBytes>,
 
     /// Results for each feature update.
-    /// 
+    ///
     /// Supported API versions: 0-1
     pub results: indexmap::IndexMap<StrBytes, UpdatableFeatureResult>,
 
@@ -146,7 +161,7 @@ pub struct UpdateFeaturesResponse {
 impl Builder for UpdateFeaturesResponse {
     type Builder = UpdateFeaturesResponseBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         UpdateFeaturesResponseBuilder::default()
     }
 }
@@ -159,7 +174,10 @@ impl Encodable for UpdateFeaturesResponse {
         types::CompactArray(types::Struct { version }).encode(buf, &self.results)?;
         let num_tagged_fields = self.unknown_tagged_fields.len();
         if num_tagged_fields > std::u32::MAX as usize {
-            error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+            error!(
+                "Too many tagged fields to encode ({} fields)",
+                num_tagged_fields
+            );
             return Err(EncodeError);
         }
         types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -175,7 +193,10 @@ impl Encodable for UpdateFeaturesResponse {
         total_size += types::CompactArray(types::Struct { version }).compute_size(&self.results)?;
         let num_tagged_fields = self.unknown_tagged_fields.len();
         if num_tagged_fields > std::u32::MAX as usize {
-            error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+            error!(
+                "Too many tagged fields to encode ({} fields)",
+                num_tagged_fields
+            );
             return Err(EncodeError);
         }
         total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -231,4 +252,3 @@ impl HeaderVersion for UpdateFeaturesResponse {
         1
     }
 }
-

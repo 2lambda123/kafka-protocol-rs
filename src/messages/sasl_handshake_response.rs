@@ -12,10 +12,11 @@ use log::error;
 use uuid::Uuid;
 
 use crate::protocol::{
-    Encodable, Decodable, MapEncodable, MapDecodable, Encoder, Decoder, EncodeError, DecodeError, Message, HeaderVersion, VersionRange,
-    types, write_unknown_tagged_fields, compute_unknown_tagged_fields_size, StrBytes, buf::{ByteBuf, ByteBufMut}, Builder
+    buf::{ByteBuf, ByteBufMut},
+    compute_unknown_tagged_fields_size, types, write_unknown_tagged_fields, Builder, Decodable,
+    DecodeError, Decoder, Encodable, EncodeError, Encoder, HeaderVersion, MapDecodable,
+    MapEncodable, Message, StrBytes, VersionRange,
 };
-
 
 /// Valid versions: 0-1
 #[non_exhaustive]
@@ -23,21 +24,20 @@ use crate::protocol::{
 #[builder(default)]
 pub struct SaslHandshakeResponse {
     /// The error code, or 0 if there was no error.
-    /// 
+    ///
     /// Supported API versions: 0-1
     pub error_code: i16,
 
     /// The mechanisms enabled in the server.
-    /// 
+    ///
     /// Supported API versions: 0-1
     pub mechanisms: Vec<StrBytes>,
-
 }
 
 impl Builder for SaslHandshakeResponse {
     type Builder = SaslHandshakeResponseBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         SaslHandshakeResponseBuilder::default()
     }
 }
@@ -87,4 +87,3 @@ impl HeaderVersion for SaslHandshakeResponse {
         0
     }
 }
-

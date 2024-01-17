@@ -12,10 +12,11 @@ use log::error;
 use uuid::Uuid;
 
 use crate::protocol::{
-    Encodable, Decodable, MapEncodable, MapDecodable, Encoder, Decoder, EncodeError, DecodeError, Message, HeaderVersion, VersionRange,
-    types, write_unknown_tagged_fields, compute_unknown_tagged_fields_size, StrBytes, buf::{ByteBuf, ByteBufMut}, Builder
+    buf::{ByteBuf, ByteBufMut},
+    compute_unknown_tagged_fields_size, types, write_unknown_tagged_fields, Builder, Decodable,
+    DecodeError, Decoder, Encodable, EncodeError, Encoder, HeaderVersion, MapDecodable,
+    MapEncodable, Message, StrBytes, VersionRange,
 };
-
 
 /// Valid versions: 0-4
 #[non_exhaustive]
@@ -23,22 +24,22 @@ use crate::protocol::{
 #[builder(default)]
 pub struct DescribeLogDirsPartition {
     /// The partition index.
-    /// 
+    ///
     /// Supported API versions: 0-4
     pub partition_index: i32,
 
     /// The size of the log segments in this partition in bytes.
-    /// 
+    ///
     /// Supported API versions: 0-4
     pub partition_size: i64,
 
     /// The lag of the log's LEO w.r.t. partition's HW (if it is the current log for the partition) or current replica's LEO (if it is the future log for the partition)
-    /// 
+    ///
     /// Supported API versions: 0-4
     pub offset_lag: i64,
 
     /// True if this log is created by AlterReplicaLogDirsRequest and will replace the current log of the replica in the future.
-    /// 
+    ///
     /// Supported API versions: 0-4
     pub is_future_key: bool,
 
@@ -49,7 +50,7 @@ pub struct DescribeLogDirsPartition {
 impl Builder for DescribeLogDirsPartition {
     type Builder = DescribeLogDirsPartitionBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         DescribeLogDirsPartitionBuilder::default()
     }
 }
@@ -63,7 +64,10 @@ impl Encodable for DescribeLogDirsPartition {
         if version >= 2 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -81,7 +85,10 @@ impl Encodable for DescribeLogDirsPartition {
         if version >= 2 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -141,12 +148,12 @@ impl Message for DescribeLogDirsPartition {
 #[builder(default)]
 pub struct DescribeLogDirsTopic {
     /// The topic name.
-    /// 
+    ///
     /// Supported API versions: 0-4
     pub name: super::TopicName,
 
-    /// 
-    /// 
+    ///
+    ///
     /// Supported API versions: 0-4
     pub partitions: Vec<DescribeLogDirsPartition>,
 
@@ -157,7 +164,7 @@ pub struct DescribeLogDirsTopic {
 impl Builder for DescribeLogDirsTopic {
     type Builder = DescribeLogDirsTopicBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         DescribeLogDirsTopicBuilder::default()
     }
 }
@@ -177,7 +184,10 @@ impl Encodable for DescribeLogDirsTopic {
         if version >= 2 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -194,14 +204,18 @@ impl Encodable for DescribeLogDirsTopic {
             total_size += types::String.compute_size(&self.name)?;
         }
         if version >= 2 {
-            total_size += types::CompactArray(types::Struct { version }).compute_size(&self.partitions)?;
+            total_size +=
+                types::CompactArray(types::Struct { version }).compute_size(&self.partitions)?;
         } else {
             total_size += types::Array(types::Struct { version }).compute_size(&self.partitions)?;
         }
         if version >= 2 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -263,27 +277,27 @@ impl Message for DescribeLogDirsTopic {
 #[builder(default)]
 pub struct DescribeLogDirsResult {
     /// The error code, or 0 if there was no error.
-    /// 
+    ///
     /// Supported API versions: 0-4
     pub error_code: i16,
 
     /// The absolute log directory path.
-    /// 
+    ///
     /// Supported API versions: 0-4
     pub log_dir: StrBytes,
 
     /// Each topic.
-    /// 
+    ///
     /// Supported API versions: 0-4
     pub topics: Vec<DescribeLogDirsTopic>,
 
     /// The total size in bytes of the volume the log directory is in.
-    /// 
+    ///
     /// Supported API versions: 4
     pub total_bytes: i64,
 
     /// The usable size in bytes of the volume the log directory is in.
-    /// 
+    ///
     /// Supported API versions: 4
     pub usable_bytes: i64,
 
@@ -294,7 +308,7 @@ pub struct DescribeLogDirsResult {
 impl Builder for DescribeLogDirsResult {
     type Builder = DescribeLogDirsResultBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         DescribeLogDirsResultBuilder::default()
     }
 }
@@ -321,7 +335,10 @@ impl Encodable for DescribeLogDirsResult {
         if version >= 2 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -339,7 +356,8 @@ impl Encodable for DescribeLogDirsResult {
             total_size += types::String.compute_size(&self.log_dir)?;
         }
         if version >= 2 {
-            total_size += types::CompactArray(types::Struct { version }).compute_size(&self.topics)?;
+            total_size +=
+                types::CompactArray(types::Struct { version }).compute_size(&self.topics)?;
         } else {
             total_size += types::Array(types::Struct { version }).compute_size(&self.topics)?;
         }
@@ -352,7 +370,10 @@ impl Encodable for DescribeLogDirsResult {
         if version >= 2 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -431,17 +452,17 @@ impl Message for DescribeLogDirsResult {
 #[builder(default)]
 pub struct DescribeLogDirsResponse {
     /// The duration in milliseconds for which the request was throttled due to a quota violation, or zero if the request did not violate any quota.
-    /// 
+    ///
     /// Supported API versions: 0-4
     pub throttle_time_ms: i32,
 
     /// The error code, or 0 if there was no error.
-    /// 
+    ///
     /// Supported API versions: 3-4
     pub error_code: i16,
 
     /// The log directories.
-    /// 
+    ///
     /// Supported API versions: 0-4
     pub results: Vec<DescribeLogDirsResult>,
 
@@ -452,7 +473,7 @@ pub struct DescribeLogDirsResponse {
 impl Builder for DescribeLogDirsResponse {
     type Builder = DescribeLogDirsResponseBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         DescribeLogDirsResponseBuilder::default()
     }
 }
@@ -471,7 +492,10 @@ impl Encodable for DescribeLogDirsResponse {
         if version >= 2 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -487,14 +511,18 @@ impl Encodable for DescribeLogDirsResponse {
             total_size += types::Int16.compute_size(&self.error_code)?;
         }
         if version >= 2 {
-            total_size += types::CompactArray(types::Struct { version }).compute_size(&self.results)?;
+            total_size +=
+                types::CompactArray(types::Struct { version }).compute_size(&self.results)?;
         } else {
             total_size += types::Array(types::Struct { version }).compute_size(&self.results)?;
         }
         if version >= 2 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -562,4 +590,3 @@ impl HeaderVersion for DescribeLogDirsResponse {
         }
     }
 }
-

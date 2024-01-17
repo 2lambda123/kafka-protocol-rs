@@ -12,10 +12,11 @@ use log::error;
 use uuid::Uuid;
 
 use crate::protocol::{
-    Encodable, Decodable, MapEncodable, MapDecodable, Encoder, Decoder, EncodeError, DecodeError, Message, HeaderVersion, VersionRange,
-    types, write_unknown_tagged_fields, compute_unknown_tagged_fields_size, StrBytes, buf::{ByteBuf, ByteBufMut}, Builder
+    buf::{ByteBuf, ByteBufMut},
+    compute_unknown_tagged_fields_size, types, write_unknown_tagged_fields, Builder, Decodable,
+    DecodeError, Decoder, Encodable, EncodeError, Encoder, HeaderVersion, MapDecodable,
+    MapEncodable, Message, StrBytes, VersionRange,
 };
-
 
 /// Valid versions: 0-5
 #[non_exhaustive]
@@ -23,17 +24,17 @@ use crate::protocol::{
 #[builder(default)]
 pub struct MemberResponse {
     /// The member ID to remove from the group.
-    /// 
+    ///
     /// Supported API versions: 3-5
     pub member_id: StrBytes,
 
     /// The group instance ID to remove from the group.
-    /// 
+    ///
     /// Supported API versions: 3-5
     pub group_instance_id: Option<StrBytes>,
 
     /// The error code, or 0 if there was no error.
-    /// 
+    ///
     /// Supported API versions: 3-5
     pub error_code: i16,
 
@@ -44,7 +45,7 @@ pub struct MemberResponse {
 impl Builder for MemberResponse {
     type Builder = MemberResponseBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         MemberResponseBuilder::default()
     }
 }
@@ -59,7 +60,7 @@ impl Encodable for MemberResponse {
             }
         } else {
             if !self.member_id.is_empty() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 3 {
@@ -69,21 +70,29 @@ impl Encodable for MemberResponse {
                 types::String.encode(buf, &self.group_instance_id)?;
             }
         } else {
-            if !self.group_instance_id.as_ref().map(|x| x.is_empty()).unwrap_or_default() {
-                return Err(EncodeError)
+            if !self
+                .group_instance_id
+                .as_ref()
+                .map(|x| x.is_empty())
+                .unwrap_or_default()
+            {
+                return Err(EncodeError);
             }
         }
         if version >= 3 {
             types::Int16.encode(buf, &self.error_code)?;
         } else {
             if self.error_code != 0 {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 4 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -102,7 +111,7 @@ impl Encodable for MemberResponse {
             }
         } else {
             if !self.member_id.is_empty() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 3 {
@@ -112,21 +121,29 @@ impl Encodable for MemberResponse {
                 total_size += types::String.compute_size(&self.group_instance_id)?;
             }
         } else {
-            if !self.group_instance_id.as_ref().map(|x| x.is_empty()).unwrap_or_default() {
-                return Err(EncodeError)
+            if !self
+                .group_instance_id
+                .as_ref()
+                .map(|x| x.is_empty())
+                .unwrap_or_default()
+            {
+                return Err(EncodeError);
             }
         }
         if version >= 3 {
             total_size += types::Int16.compute_size(&self.error_code)?;
         } else {
             if self.error_code != 0 {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 4 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -203,17 +220,17 @@ impl Message for MemberResponse {
 #[builder(default)]
 pub struct LeaveGroupResponse {
     /// The duration in milliseconds for which the request was throttled due to a quota violation, or zero if the request did not violate any quota.
-    /// 
+    ///
     /// Supported API versions: 1-5
     pub throttle_time_ms: i32,
 
     /// The error code, or 0 if there was no error.
-    /// 
+    ///
     /// Supported API versions: 0-5
     pub error_code: i16,
 
     /// List of leaving member responses.
-    /// 
+    ///
     /// Supported API versions: 3-5
     pub members: Vec<MemberResponse>,
 
@@ -224,7 +241,7 @@ pub struct LeaveGroupResponse {
 impl Builder for LeaveGroupResponse {
     type Builder = LeaveGroupResponseBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         LeaveGroupResponseBuilder::default()
     }
 }
@@ -243,13 +260,16 @@ impl Encodable for LeaveGroupResponse {
             }
         } else {
             if !self.members.is_empty() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 4 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -266,19 +286,24 @@ impl Encodable for LeaveGroupResponse {
         total_size += types::Int16.compute_size(&self.error_code)?;
         if version >= 3 {
             if version >= 4 {
-                total_size += types::CompactArray(types::Struct { version }).compute_size(&self.members)?;
+                total_size +=
+                    types::CompactArray(types::Struct { version }).compute_size(&self.members)?;
             } else {
-                total_size += types::Array(types::Struct { version }).compute_size(&self.members)?;
+                total_size +=
+                    types::Array(types::Struct { version }).compute_size(&self.members)?;
             }
         } else {
             if !self.members.is_empty() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 4 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -350,4 +375,3 @@ impl HeaderVersion for LeaveGroupResponse {
         }
     }
 }
-

@@ -12,10 +12,11 @@ use log::error;
 use uuid::Uuid;
 
 use crate::protocol::{
-    Encodable, Decodable, MapEncodable, MapDecodable, Encoder, Decoder, EncodeError, DecodeError, Message, HeaderVersion, VersionRange,
-    types, write_unknown_tagged_fields, compute_unknown_tagged_fields_size, StrBytes, buf::{ByteBuf, ByteBufMut}, Builder
+    buf::{ByteBuf, ByteBufMut},
+    compute_unknown_tagged_fields_size, types, write_unknown_tagged_fields, Builder, Decodable,
+    DecodeError, Decoder, Encodable, EncodeError, Encoder, HeaderVersion, MapDecodable,
+    MapEncodable, Message, StrBytes, VersionRange,
 };
-
 
 /// Valid versions: 0-7
 #[non_exhaustive]
@@ -23,32 +24,32 @@ use crate::protocol::{
 #[builder(default)]
 pub struct ListOffsetsPartitionResponse {
     /// The partition index.
-    /// 
+    ///
     /// Supported API versions: 0-7
     pub partition_index: i32,
 
     /// The partition error code, or 0 if there was no error.
-    /// 
+    ///
     /// Supported API versions: 0-7
     pub error_code: i16,
 
     /// The result offsets.
-    /// 
+    ///
     /// Supported API versions: 0
     pub old_style_offsets: Vec<i64>,
 
     /// The timestamp associated with the returned offset.
-    /// 
+    ///
     /// Supported API versions: 1-7
     pub timestamp: i64,
 
     /// The returned offset.
-    /// 
+    ///
     /// Supported API versions: 1-7
     pub offset: i64,
 
-    /// 
-    /// 
+    ///
+    ///
     /// Supported API versions: 4-7
     pub leader_epoch: i32,
 
@@ -59,7 +60,7 @@ pub struct ListOffsetsPartitionResponse {
 impl Builder for ListOffsetsPartitionResponse {
     type Builder = ListOffsetsPartitionResponseBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         ListOffsetsPartitionResponseBuilder::default()
     }
 }
@@ -72,34 +73,37 @@ impl Encodable for ListOffsetsPartitionResponse {
             types::Array(types::Int64).encode(buf, &self.old_style_offsets)?;
         } else {
             if !self.old_style_offsets.is_empty() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 1 {
             types::Int64.encode(buf, &self.timestamp)?;
         } else {
             if self.timestamp != -1 {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 1 {
             types::Int64.encode(buf, &self.offset)?;
         } else {
             if self.offset != -1 {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 4 {
             types::Int32.encode(buf, &self.leader_epoch)?;
         } else {
             if self.leader_epoch != -1 {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 6 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -116,34 +120,37 @@ impl Encodable for ListOffsetsPartitionResponse {
             total_size += types::Array(types::Int64).compute_size(&self.old_style_offsets)?;
         } else {
             if !self.old_style_offsets.is_empty() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 1 {
             total_size += types::Int64.compute_size(&self.timestamp)?;
         } else {
             if self.timestamp != -1 {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 1 {
             total_size += types::Int64.compute_size(&self.offset)?;
         } else {
             if self.offset != -1 {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 4 {
             total_size += types::Int32.compute_size(&self.leader_epoch)?;
         } else {
             if self.leader_epoch != -1 {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 6 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -225,12 +232,12 @@ impl Message for ListOffsetsPartitionResponse {
 #[builder(default)]
 pub struct ListOffsetsTopicResponse {
     /// The topic name
-    /// 
+    ///
     /// Supported API versions: 0-7
     pub name: super::TopicName,
 
     /// Each partition in the response.
-    /// 
+    ///
     /// Supported API versions: 0-7
     pub partitions: Vec<ListOffsetsPartitionResponse>,
 
@@ -241,7 +248,7 @@ pub struct ListOffsetsTopicResponse {
 impl Builder for ListOffsetsTopicResponse {
     type Builder = ListOffsetsTopicResponseBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         ListOffsetsTopicResponseBuilder::default()
     }
 }
@@ -261,7 +268,10 @@ impl Encodable for ListOffsetsTopicResponse {
         if version >= 6 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -278,14 +288,18 @@ impl Encodable for ListOffsetsTopicResponse {
             total_size += types::String.compute_size(&self.name)?;
         }
         if version >= 6 {
-            total_size += types::CompactArray(types::Struct { version }).compute_size(&self.partitions)?;
+            total_size +=
+                types::CompactArray(types::Struct { version }).compute_size(&self.partitions)?;
         } else {
             total_size += types::Array(types::Struct { version }).compute_size(&self.partitions)?;
         }
         if version >= 6 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -347,12 +361,12 @@ impl Message for ListOffsetsTopicResponse {
 #[builder(default)]
 pub struct ListOffsetsResponse {
     /// The duration in milliseconds for which the request was throttled due to a quota violation, or zero if the request did not violate any quota.
-    /// 
+    ///
     /// Supported API versions: 2-7
     pub throttle_time_ms: i32,
 
     /// Each topic in the response.
-    /// 
+    ///
     /// Supported API versions: 0-7
     pub topics: Vec<ListOffsetsTopicResponse>,
 
@@ -363,7 +377,7 @@ pub struct ListOffsetsResponse {
 impl Builder for ListOffsetsResponse {
     type Builder = ListOffsetsResponseBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         ListOffsetsResponseBuilder::default()
     }
 }
@@ -381,7 +395,10 @@ impl Encodable for ListOffsetsResponse {
         if version >= 6 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -396,14 +413,18 @@ impl Encodable for ListOffsetsResponse {
             total_size += types::Int32.compute_size(&self.throttle_time_ms)?;
         }
         if version >= 6 {
-            total_size += types::CompactArray(types::Struct { version }).compute_size(&self.topics)?;
+            total_size +=
+                types::CompactArray(types::Struct { version }).compute_size(&self.topics)?;
         } else {
             total_size += types::Array(types::Struct { version }).compute_size(&self.topics)?;
         }
         if version >= 6 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -468,4 +489,3 @@ impl HeaderVersion for ListOffsetsResponse {
         }
     }
 }
-

@@ -12,10 +12,11 @@ use log::error;
 use uuid::Uuid;
 
 use crate::protocol::{
-    Encodable, Decodable, MapEncodable, MapDecodable, Encoder, Decoder, EncodeError, DecodeError, Message, HeaderVersion, VersionRange,
-    types, write_unknown_tagged_fields, compute_unknown_tagged_fields_size, StrBytes, buf::{ByteBuf, ByteBufMut}, Builder
+    buf::{ByteBuf, ByteBufMut},
+    compute_unknown_tagged_fields_size, types, write_unknown_tagged_fields, Builder, Decodable,
+    DecodeError, Decoder, Encodable, EncodeError, Encoder, HeaderVersion, MapDecodable,
+    MapEncodable, Message, StrBytes, VersionRange,
 };
-
 
 /// Valid versions: 0
 #[non_exhaustive]
@@ -23,27 +24,27 @@ use crate::protocol::{
 #[builder(default)]
 pub struct PartitionData {
     /// The partition index.
-    /// 
+    ///
     /// Supported API versions: 0
     pub partition_index: i32,
 
     /// The bumped epoch of the candidate sending the request
-    /// 
+    ///
     /// Supported API versions: 0
     pub candidate_epoch: i32,
 
     /// The ID of the voter sending the request
-    /// 
+    ///
     /// Supported API versions: 0
     pub candidate_id: super::BrokerId,
 
     /// The epoch of the last record written to the metadata log
-    /// 
+    ///
     /// Supported API versions: 0
     pub last_offset_epoch: i32,
 
     /// The offset of the last record written to the metadata log
-    /// 
+    ///
     /// Supported API versions: 0
     pub last_offset: i64,
 
@@ -54,7 +55,7 @@ pub struct PartitionData {
 impl Builder for PartitionData {
     type Builder = PartitionDataBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         PartitionDataBuilder::default()
     }
 }
@@ -68,7 +69,10 @@ impl Encodable for PartitionData {
         types::Int64.encode(buf, &self.last_offset)?;
         let num_tagged_fields = self.unknown_tagged_fields.len();
         if num_tagged_fields > std::u32::MAX as usize {
-            error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+            error!(
+                "Too many tagged fields to encode ({} fields)",
+                num_tagged_fields
+            );
             return Err(EncodeError);
         }
         types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -85,7 +89,10 @@ impl Encodable for PartitionData {
         total_size += types::Int64.compute_size(&self.last_offset)?;
         let num_tagged_fields = self.unknown_tagged_fields.len();
         if num_tagged_fields > std::u32::MAX as usize {
-            error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+            error!(
+                "Too many tagged fields to encode ({} fields)",
+                num_tagged_fields
+            );
             return Err(EncodeError);
         }
         total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -145,12 +152,12 @@ impl Message for PartitionData {
 #[builder(default)]
 pub struct TopicData {
     /// The topic name.
-    /// 
+    ///
     /// Supported API versions: 0
     pub topic_name: super::TopicName,
 
-    /// 
-    /// 
+    ///
+    ///
     /// Supported API versions: 0
     pub partitions: Vec<PartitionData>,
 
@@ -161,7 +168,7 @@ pub struct TopicData {
 impl Builder for TopicData {
     type Builder = TopicDataBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         TopicDataBuilder::default()
     }
 }
@@ -172,7 +179,10 @@ impl Encodable for TopicData {
         types::CompactArray(types::Struct { version }).encode(buf, &self.partitions)?;
         let num_tagged_fields = self.unknown_tagged_fields.len();
         if num_tagged_fields > std::u32::MAX as usize {
-            error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+            error!(
+                "Too many tagged fields to encode ({} fields)",
+                num_tagged_fields
+            );
             return Err(EncodeError);
         }
         types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -183,10 +193,14 @@ impl Encodable for TopicData {
     fn compute_size(&self, version: i16) -> Result<usize, EncodeError> {
         let mut total_size = 0;
         total_size += types::CompactString.compute_size(&self.topic_name)?;
-        total_size += types::CompactArray(types::Struct { version }).compute_size(&self.partitions)?;
+        total_size +=
+            types::CompactArray(types::Struct { version }).compute_size(&self.partitions)?;
         let num_tagged_fields = self.unknown_tagged_fields.len();
         if num_tagged_fields > std::u32::MAX as usize {
-            error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+            error!(
+                "Too many tagged fields to encode ({} fields)",
+                num_tagged_fields
+            );
             return Err(EncodeError);
         }
         total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -236,13 +250,13 @@ impl Message for TopicData {
 #[derive(Debug, Clone, PartialEq, derive_builder::Builder)]
 #[builder(default)]
 pub struct VoteRequest {
-    /// 
-    /// 
+    ///
+    ///
     /// Supported API versions: 0
     pub cluster_id: Option<StrBytes>,
 
-    /// 
-    /// 
+    ///
+    ///
     /// Supported API versions: 0
     pub topics: Vec<TopicData>,
 
@@ -253,7 +267,7 @@ pub struct VoteRequest {
 impl Builder for VoteRequest {
     type Builder = VoteRequestBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         VoteRequestBuilder::default()
     }
 }
@@ -264,7 +278,10 @@ impl Encodable for VoteRequest {
         types::CompactArray(types::Struct { version }).encode(buf, &self.topics)?;
         let num_tagged_fields = self.unknown_tagged_fields.len();
         if num_tagged_fields > std::u32::MAX as usize {
-            error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+            error!(
+                "Too many tagged fields to encode ({} fields)",
+                num_tagged_fields
+            );
             return Err(EncodeError);
         }
         types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -278,7 +295,10 @@ impl Encodable for VoteRequest {
         total_size += types::CompactArray(types::Struct { version }).compute_size(&self.topics)?;
         let num_tagged_fields = self.unknown_tagged_fields.len();
         if num_tagged_fields > std::u32::MAX as usize {
-            error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+            error!(
+                "Too many tagged fields to encode ({} fields)",
+                num_tagged_fields
+            );
             return Err(EncodeError);
         }
         total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -328,4 +348,3 @@ impl HeaderVersion for VoteRequest {
         2
     }
 }
-

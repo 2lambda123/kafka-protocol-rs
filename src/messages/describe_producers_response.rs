@@ -12,43 +12,44 @@ use log::error;
 use uuid::Uuid;
 
 use crate::protocol::{
-    Encodable, Decodable, MapEncodable, MapDecodable, Encoder, Decoder, EncodeError, DecodeError, Message, HeaderVersion, VersionRange,
-    types, write_unknown_tagged_fields, compute_unknown_tagged_fields_size, StrBytes, buf::{ByteBuf, ByteBufMut}, Builder
+    buf::{ByteBuf, ByteBufMut},
+    compute_unknown_tagged_fields_size, types, write_unknown_tagged_fields, Builder, Decodable,
+    DecodeError, Decoder, Encodable, EncodeError, Encoder, HeaderVersion, MapDecodable,
+    MapEncodable, Message, StrBytes, VersionRange,
 };
-
 
 /// Valid versions: 0
 #[non_exhaustive]
 #[derive(Debug, Clone, PartialEq, derive_builder::Builder)]
 #[builder(default)]
 pub struct ProducerState {
-    /// 
-    /// 
+    ///
+    ///
     /// Supported API versions: 0
     pub producer_id: super::ProducerId,
 
-    /// 
-    /// 
+    ///
+    ///
     /// Supported API versions: 0
     pub producer_epoch: i32,
 
-    /// 
-    /// 
+    ///
+    ///
     /// Supported API versions: 0
     pub last_sequence: i32,
 
-    /// 
-    /// 
+    ///
+    ///
     /// Supported API versions: 0
     pub last_timestamp: i64,
 
-    /// 
-    /// 
+    ///
+    ///
     /// Supported API versions: 0
     pub coordinator_epoch: i32,
 
-    /// 
-    /// 
+    ///
+    ///
     /// Supported API versions: 0
     pub current_txn_start_offset: i64,
 
@@ -59,7 +60,7 @@ pub struct ProducerState {
 impl Builder for ProducerState {
     type Builder = ProducerStateBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         ProducerStateBuilder::default()
     }
 }
@@ -74,7 +75,10 @@ impl Encodable for ProducerState {
         types::Int64.encode(buf, &self.current_txn_start_offset)?;
         let num_tagged_fields = self.unknown_tagged_fields.len();
         if num_tagged_fields > std::u32::MAX as usize {
-            error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+            error!(
+                "Too many tagged fields to encode ({} fields)",
+                num_tagged_fields
+            );
             return Err(EncodeError);
         }
         types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -92,7 +96,10 @@ impl Encodable for ProducerState {
         total_size += types::Int64.compute_size(&self.current_txn_start_offset)?;
         let num_tagged_fields = self.unknown_tagged_fields.len();
         if num_tagged_fields > std::u32::MAX as usize {
-            error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+            error!(
+                "Too many tagged fields to encode ({} fields)",
+                num_tagged_fields
+            );
             return Err(EncodeError);
         }
         total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -155,22 +162,22 @@ impl Message for ProducerState {
 #[builder(default)]
 pub struct PartitionResponse {
     /// The partition index.
-    /// 
+    ///
     /// Supported API versions: 0
     pub partition_index: i32,
 
     /// The partition error code, or 0 if there was no error.
-    /// 
+    ///
     /// Supported API versions: 0
     pub error_code: i16,
 
     /// The partition error message, which may be null if no additional details are available
-    /// 
+    ///
     /// Supported API versions: 0
     pub error_message: Option<StrBytes>,
 
-    /// 
-    /// 
+    ///
+    ///
     /// Supported API versions: 0
     pub active_producers: Vec<ProducerState>,
 
@@ -181,7 +188,7 @@ pub struct PartitionResponse {
 impl Builder for PartitionResponse {
     type Builder = PartitionResponseBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         PartitionResponseBuilder::default()
     }
 }
@@ -194,7 +201,10 @@ impl Encodable for PartitionResponse {
         types::CompactArray(types::Struct { version }).encode(buf, &self.active_producers)?;
         let num_tagged_fields = self.unknown_tagged_fields.len();
         if num_tagged_fields > std::u32::MAX as usize {
-            error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+            error!(
+                "Too many tagged fields to encode ({} fields)",
+                num_tagged_fields
+            );
             return Err(EncodeError);
         }
         types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -207,10 +217,14 @@ impl Encodable for PartitionResponse {
         total_size += types::Int32.compute_size(&self.partition_index)?;
         total_size += types::Int16.compute_size(&self.error_code)?;
         total_size += types::CompactString.compute_size(&self.error_message)?;
-        total_size += types::CompactArray(types::Struct { version }).compute_size(&self.active_producers)?;
+        total_size +=
+            types::CompactArray(types::Struct { version }).compute_size(&self.active_producers)?;
         let num_tagged_fields = self.unknown_tagged_fields.len();
         if num_tagged_fields > std::u32::MAX as usize {
-            error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+            error!(
+                "Too many tagged fields to encode ({} fields)",
+                num_tagged_fields
+            );
             return Err(EncodeError);
         }
         total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -267,12 +281,12 @@ impl Message for PartitionResponse {
 #[builder(default)]
 pub struct TopicResponse {
     /// The topic name
-    /// 
+    ///
     /// Supported API versions: 0
     pub name: super::TopicName,
 
     /// Each partition in the response.
-    /// 
+    ///
     /// Supported API versions: 0
     pub partitions: Vec<PartitionResponse>,
 
@@ -283,7 +297,7 @@ pub struct TopicResponse {
 impl Builder for TopicResponse {
     type Builder = TopicResponseBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         TopicResponseBuilder::default()
     }
 }
@@ -294,7 +308,10 @@ impl Encodable for TopicResponse {
         types::CompactArray(types::Struct { version }).encode(buf, &self.partitions)?;
         let num_tagged_fields = self.unknown_tagged_fields.len();
         if num_tagged_fields > std::u32::MAX as usize {
-            error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+            error!(
+                "Too many tagged fields to encode ({} fields)",
+                num_tagged_fields
+            );
             return Err(EncodeError);
         }
         types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -305,10 +322,14 @@ impl Encodable for TopicResponse {
     fn compute_size(&self, version: i16) -> Result<usize, EncodeError> {
         let mut total_size = 0;
         total_size += types::CompactString.compute_size(&self.name)?;
-        total_size += types::CompactArray(types::Struct { version }).compute_size(&self.partitions)?;
+        total_size +=
+            types::CompactArray(types::Struct { version }).compute_size(&self.partitions)?;
         let num_tagged_fields = self.unknown_tagged_fields.len();
         if num_tagged_fields > std::u32::MAX as usize {
-            error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+            error!(
+                "Too many tagged fields to encode ({} fields)",
+                num_tagged_fields
+            );
             return Err(EncodeError);
         }
         total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -359,12 +380,12 @@ impl Message for TopicResponse {
 #[builder(default)]
 pub struct DescribeProducersResponse {
     /// The duration in milliseconds for which the request was throttled due to a quota violation, or zero if the request did not violate any quota.
-    /// 
+    ///
     /// Supported API versions: 0
     pub throttle_time_ms: i32,
 
     /// Each topic in the response.
-    /// 
+    ///
     /// Supported API versions: 0
     pub topics: Vec<TopicResponse>,
 
@@ -375,7 +396,7 @@ pub struct DescribeProducersResponse {
 impl Builder for DescribeProducersResponse {
     type Builder = DescribeProducersResponseBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         DescribeProducersResponseBuilder::default()
     }
 }
@@ -386,7 +407,10 @@ impl Encodable for DescribeProducersResponse {
         types::CompactArray(types::Struct { version }).encode(buf, &self.topics)?;
         let num_tagged_fields = self.unknown_tagged_fields.len();
         if num_tagged_fields > std::u32::MAX as usize {
-            error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+            error!(
+                "Too many tagged fields to encode ({} fields)",
+                num_tagged_fields
+            );
             return Err(EncodeError);
         }
         types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -400,7 +424,10 @@ impl Encodable for DescribeProducersResponse {
         total_size += types::CompactArray(types::Struct { version }).compute_size(&self.topics)?;
         let num_tagged_fields = self.unknown_tagged_fields.len();
         if num_tagged_fields > std::u32::MAX as usize {
-            error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+            error!(
+                "Too many tagged fields to encode ({} fields)",
+                num_tagged_fields
+            );
             return Err(EncodeError);
         }
         total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -450,4 +477,3 @@ impl HeaderVersion for DescribeProducersResponse {
         1
     }
 }
-

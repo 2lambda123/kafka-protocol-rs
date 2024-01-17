@@ -12,10 +12,11 @@ use log::error;
 use uuid::Uuid;
 
 use crate::protocol::{
-    Encodable, Decodable, MapEncodable, MapDecodable, Encoder, Decoder, EncodeError, DecodeError, Message, HeaderVersion, VersionRange,
-    types, write_unknown_tagged_fields, compute_unknown_tagged_fields_size, StrBytes, buf::{ByteBuf, ByteBufMut}, Builder
+    buf::{ByteBuf, ByteBufMut},
+    compute_unknown_tagged_fields_size, types, write_unknown_tagged_fields, Builder, Decodable,
+    DecodeError, Decoder, Encodable, EncodeError, Encoder, HeaderVersion, MapDecodable,
+    MapEncodable, Message, StrBytes, VersionRange,
 };
-
 
 /// Valid versions: 0-2
 #[non_exhaustive]
@@ -23,12 +24,12 @@ use crate::protocol::{
 #[builder(default)]
 pub struct DeleteRecordsPartitionResult {
     /// The partition low water mark.
-    /// 
+    ///
     /// Supported API versions: 0-2
     pub low_watermark: i64,
 
     /// The deletion error code, or 0 if the deletion succeeded.
-    /// 
+    ///
     /// Supported API versions: 0-2
     pub error_code: i16,
 
@@ -39,21 +40,29 @@ pub struct DeleteRecordsPartitionResult {
 impl Builder for DeleteRecordsPartitionResult {
     type Builder = DeleteRecordsPartitionResultBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         DeleteRecordsPartitionResultBuilder::default()
     }
 }
 
 impl MapEncodable for DeleteRecordsPartitionResult {
     type Key = i32;
-    fn encode<B: ByteBufMut>(&self, key: &Self::Key, buf: &mut B, version: i16) -> Result<(), EncodeError> {
+    fn encode<B: ByteBufMut>(
+        &self,
+        key: &Self::Key,
+        buf: &mut B,
+        version: i16,
+    ) -> Result<(), EncodeError> {
         types::Int32.encode(buf, key)?;
         types::Int64.encode(buf, &self.low_watermark)?;
         types::Int16.encode(buf, &self.error_code)?;
         if version >= 2 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -70,7 +79,10 @@ impl MapEncodable for DeleteRecordsPartitionResult {
         if version >= 2 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -98,11 +110,14 @@ impl MapDecodable for DeleteRecordsPartitionResult {
                 unknown_tagged_fields.insert(tag as i32, unknown_value);
             }
         }
-        Ok((key_field, Self {
-            low_watermark,
-            error_code,
-            unknown_tagged_fields,
-        }))
+        Ok((
+            key_field,
+            Self {
+                low_watermark,
+                error_code,
+                unknown_tagged_fields,
+            },
+        ))
     }
 }
 
@@ -126,7 +141,7 @@ impl Message for DeleteRecordsPartitionResult {
 #[builder(default)]
 pub struct DeleteRecordsTopicResult {
     /// Each partition that we wanted to delete records from.
-    /// 
+    ///
     /// Supported API versions: 0-2
     pub partitions: indexmap::IndexMap<i32, DeleteRecordsPartitionResult>,
 
@@ -137,14 +152,19 @@ pub struct DeleteRecordsTopicResult {
 impl Builder for DeleteRecordsTopicResult {
     type Builder = DeleteRecordsTopicResultBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         DeleteRecordsTopicResultBuilder::default()
     }
 }
 
 impl MapEncodable for DeleteRecordsTopicResult {
     type Key = super::TopicName;
-    fn encode<B: ByteBufMut>(&self, key: &Self::Key, buf: &mut B, version: i16) -> Result<(), EncodeError> {
+    fn encode<B: ByteBufMut>(
+        &self,
+        key: &Self::Key,
+        buf: &mut B,
+        version: i16,
+    ) -> Result<(), EncodeError> {
         if version >= 2 {
             types::CompactString.encode(buf, key)?;
         } else {
@@ -158,7 +178,10 @@ impl MapEncodable for DeleteRecordsTopicResult {
         if version >= 2 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -175,14 +198,18 @@ impl MapEncodable for DeleteRecordsTopicResult {
             total_size += types::String.compute_size(key)?;
         }
         if version >= 2 {
-            total_size += types::CompactArray(types::Struct { version }).compute_size(&self.partitions)?;
+            total_size +=
+                types::CompactArray(types::Struct { version }).compute_size(&self.partitions)?;
         } else {
             total_size += types::Array(types::Struct { version }).compute_size(&self.partitions)?;
         }
         if version >= 2 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -217,10 +244,13 @@ impl MapDecodable for DeleteRecordsTopicResult {
                 unknown_tagged_fields.insert(tag as i32, unknown_value);
             }
         }
-        Ok((key_field, Self {
-            partitions,
-            unknown_tagged_fields,
-        }))
+        Ok((
+            key_field,
+            Self {
+                partitions,
+                unknown_tagged_fields,
+            },
+        ))
     }
 }
 
@@ -243,12 +273,12 @@ impl Message for DeleteRecordsTopicResult {
 #[builder(default)]
 pub struct DeleteRecordsResponse {
     /// The duration in milliseconds for which the request was throttled due to a quota violation, or zero if the request did not violate any quota.
-    /// 
+    ///
     /// Supported API versions: 0-2
     pub throttle_time_ms: i32,
 
     /// Each topic that we wanted to delete records from.
-    /// 
+    ///
     /// Supported API versions: 0-2
     pub topics: indexmap::IndexMap<super::TopicName, DeleteRecordsTopicResult>,
 
@@ -259,7 +289,7 @@ pub struct DeleteRecordsResponse {
 impl Builder for DeleteRecordsResponse {
     type Builder = DeleteRecordsResponseBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         DeleteRecordsResponseBuilder::default()
     }
 }
@@ -275,7 +305,10 @@ impl Encodable for DeleteRecordsResponse {
         if version >= 2 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -288,14 +321,18 @@ impl Encodable for DeleteRecordsResponse {
         let mut total_size = 0;
         total_size += types::Int32.compute_size(&self.throttle_time_ms)?;
         if version >= 2 {
-            total_size += types::CompactArray(types::Struct { version }).compute_size(&self.topics)?;
+            total_size +=
+                types::CompactArray(types::Struct { version }).compute_size(&self.topics)?;
         } else {
             total_size += types::Array(types::Struct { version }).compute_size(&self.topics)?;
         }
         if version >= 2 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -356,4 +393,3 @@ impl HeaderVersion for DeleteRecordsResponse {
         }
     }
 }
-

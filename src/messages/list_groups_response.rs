@@ -12,10 +12,11 @@ use log::error;
 use uuid::Uuid;
 
 use crate::protocol::{
-    Encodable, Decodable, MapEncodable, MapDecodable, Encoder, Decoder, EncodeError, DecodeError, Message, HeaderVersion, VersionRange,
-    types, write_unknown_tagged_fields, compute_unknown_tagged_fields_size, StrBytes, buf::{ByteBuf, ByteBufMut}, Builder
+    buf::{ByteBuf, ByteBufMut},
+    compute_unknown_tagged_fields_size, types, write_unknown_tagged_fields, Builder, Decodable,
+    DecodeError, Decoder, Encodable, EncodeError, Encoder, HeaderVersion, MapDecodable,
+    MapEncodable, Message, StrBytes, VersionRange,
 };
-
 
 /// Valid versions: 0-4
 #[non_exhaustive]
@@ -23,17 +24,17 @@ use crate::protocol::{
 #[builder(default)]
 pub struct ListedGroup {
     /// The group ID.
-    /// 
+    ///
     /// Supported API versions: 0-4
     pub group_id: super::GroupId,
 
     /// The group protocol type.
-    /// 
+    ///
     /// Supported API versions: 0-4
     pub protocol_type: StrBytes,
 
     /// The group state name.
-    /// 
+    ///
     /// Supported API versions: 4
     pub group_state: StrBytes,
 
@@ -44,7 +45,7 @@ pub struct ListedGroup {
 impl Builder for ListedGroup {
     type Builder = ListedGroupBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         ListedGroupBuilder::default()
     }
 }
@@ -67,7 +68,10 @@ impl Encodable for ListedGroup {
         if version >= 3 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -94,7 +98,10 @@ impl Encodable for ListedGroup {
         if version >= 3 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -163,17 +170,17 @@ impl Message for ListedGroup {
 #[builder(default)]
 pub struct ListGroupsResponse {
     /// The duration in milliseconds for which the request was throttled due to a quota violation, or zero if the request did not violate any quota.
-    /// 
+    ///
     /// Supported API versions: 1-4
     pub throttle_time_ms: i32,
 
     /// The error code, or 0 if there was no error.
-    /// 
+    ///
     /// Supported API versions: 0-4
     pub error_code: i16,
 
     /// Each group in the response.
-    /// 
+    ///
     /// Supported API versions: 0-4
     pub groups: Vec<ListedGroup>,
 
@@ -184,7 +191,7 @@ pub struct ListGroupsResponse {
 impl Builder for ListGroupsResponse {
     type Builder = ListGroupsResponseBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         ListGroupsResponseBuilder::default()
     }
 }
@@ -203,7 +210,10 @@ impl Encodable for ListGroupsResponse {
         if version >= 3 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -219,14 +229,18 @@ impl Encodable for ListGroupsResponse {
         }
         total_size += types::Int16.compute_size(&self.error_code)?;
         if version >= 3 {
-            total_size += types::CompactArray(types::Struct { version }).compute_size(&self.groups)?;
+            total_size +=
+                types::CompactArray(types::Struct { version }).compute_size(&self.groups)?;
         } else {
             total_size += types::Array(types::Struct { version }).compute_size(&self.groups)?;
         }
         if version >= 3 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -294,4 +308,3 @@ impl HeaderVersion for ListGroupsResponse {
         }
     }
 }
-

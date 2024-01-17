@@ -12,10 +12,11 @@ use log::error;
 use uuid::Uuid;
 
 use crate::protocol::{
-    Encodable, Decodable, MapEncodable, MapDecodable, Encoder, Decoder, EncodeError, DecodeError, Message, HeaderVersion, VersionRange,
-    types, write_unknown_tagged_fields, compute_unknown_tagged_fields_size, StrBytes, buf::{ByteBuf, ByteBufMut}, Builder
+    buf::{ByteBuf, ByteBufMut},
+    compute_unknown_tagged_fields_size, types, write_unknown_tagged_fields, Builder, Decodable,
+    DecodeError, Decoder, Encodable, EncodeError, Encoder, HeaderVersion, MapDecodable,
+    MapEncodable, Message, StrBytes, VersionRange,
 };
-
 
 /// Valid versions: 0
 #[non_exhaustive]
@@ -23,17 +24,17 @@ use crate::protocol::{
 #[builder(default)]
 pub struct DefaultPrincipalData {
     /// The principal type
-    /// 
+    ///
     /// Supported API versions: 0
     pub _type: StrBytes,
 
     /// The principal name
-    /// 
+    ///
     /// Supported API versions: 0
     pub name: StrBytes,
 
     /// Whether the principal was authenticated by a delegation token on the forwarding broker.
-    /// 
+    ///
     /// Supported API versions: 0
     pub token_authenticated: bool,
 
@@ -44,7 +45,7 @@ pub struct DefaultPrincipalData {
 impl Builder for DefaultPrincipalData {
     type Builder = DefaultPrincipalDataBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         DefaultPrincipalDataBuilder::default()
     }
 }
@@ -56,7 +57,10 @@ impl Encodable for DefaultPrincipalData {
         types::Boolean.encode(buf, &self.token_authenticated)?;
         let num_tagged_fields = self.unknown_tagged_fields.len();
         if num_tagged_fields > std::u32::MAX as usize {
-            error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+            error!(
+                "Too many tagged fields to encode ({} fields)",
+                num_tagged_fields
+            );
             return Err(EncodeError);
         }
         types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -71,7 +75,10 @@ impl Encodable for DefaultPrincipalData {
         total_size += types::Boolean.compute_size(&self.token_authenticated)?;
         let num_tagged_fields = self.unknown_tagged_fields.len();
         if num_tagged_fields > std::u32::MAX as usize {
-            error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+            error!(
+                "Too many tagged fields to encode ({} fields)",
+                num_tagged_fields
+            );
             return Err(EncodeError);
         }
         total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -118,4 +125,3 @@ impl Default for DefaultPrincipalData {
 impl Message for DefaultPrincipalData {
     const VERSIONS: VersionRange = VersionRange { min: 0, max: 0 };
 }
-

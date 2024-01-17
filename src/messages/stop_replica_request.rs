@@ -12,10 +12,11 @@ use log::error;
 use uuid::Uuid;
 
 use crate::protocol::{
-    Encodable, Decodable, MapEncodable, MapDecodable, Encoder, Decoder, EncodeError, DecodeError, Message, HeaderVersion, VersionRange,
-    types, write_unknown_tagged_fields, compute_unknown_tagged_fields_size, StrBytes, buf::{ByteBuf, ByteBufMut}, Builder
+    buf::{ByteBuf, ByteBufMut},
+    compute_unknown_tagged_fields_size, types, write_unknown_tagged_fields, Builder, Decodable,
+    DecodeError, Decoder, Encodable, EncodeError, Encoder, HeaderVersion, MapDecodable,
+    MapEncodable, Message, StrBytes, VersionRange,
 };
-
 
 /// Valid versions: 0-3
 #[non_exhaustive]
@@ -23,12 +24,12 @@ use crate::protocol::{
 #[builder(default)]
 pub struct StopReplicaPartitionV0 {
     /// The topic name.
-    /// 
+    ///
     /// Supported API versions: 0
     pub topic_name: super::TopicName,
 
     /// The partition index.
-    /// 
+    ///
     /// Supported API versions: 0
     pub partition_index: i32,
 
@@ -39,7 +40,7 @@ pub struct StopReplicaPartitionV0 {
 impl Builder for StopReplicaPartitionV0 {
     type Builder = StopReplicaPartitionV0Builder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         StopReplicaPartitionV0Builder::default()
     }
 }
@@ -50,20 +51,23 @@ impl Encodable for StopReplicaPartitionV0 {
             types::String.encode(buf, &self.topic_name)?;
         } else {
             if !self.topic_name.is_empty() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version == 0 {
             types::Int32.encode(buf, &self.partition_index)?;
         } else {
             if self.partition_index != 0 {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 2 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -78,20 +82,23 @@ impl Encodable for StopReplicaPartitionV0 {
             total_size += types::String.compute_size(&self.topic_name)?;
         } else {
             if !self.topic_name.is_empty() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version == 0 {
             total_size += types::Int32.compute_size(&self.partition_index)?;
         } else {
             if self.partition_index != 0 {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 2 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -153,12 +160,12 @@ impl Message for StopReplicaPartitionV0 {
 #[builder(default)]
 pub struct StopReplicaTopicV1 {
     /// The topic name.
-    /// 
+    ///
     /// Supported API versions: 1-2
     pub name: super::TopicName,
 
     /// The partition indexes.
-    /// 
+    ///
     /// Supported API versions: 1-2
     pub partition_indexes: Vec<i32>,
 
@@ -169,7 +176,7 @@ pub struct StopReplicaTopicV1 {
 impl Builder for StopReplicaTopicV1 {
     type Builder = StopReplicaTopicV1Builder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         StopReplicaTopicV1Builder::default()
     }
 }
@@ -184,7 +191,7 @@ impl Encodable for StopReplicaTopicV1 {
             }
         } else {
             if !self.name.is_empty() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 1 && version <= 2 {
@@ -195,13 +202,16 @@ impl Encodable for StopReplicaTopicV1 {
             }
         } else {
             if !self.partition_indexes.is_empty() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 2 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -220,24 +230,28 @@ impl Encodable for StopReplicaTopicV1 {
             }
         } else {
             if !self.name.is_empty() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 1 && version <= 2 {
             if version >= 2 {
-                total_size += types::CompactArray(types::Int32).compute_size(&self.partition_indexes)?;
+                total_size +=
+                    types::CompactArray(types::Int32).compute_size(&self.partition_indexes)?;
             } else {
                 total_size += types::Array(types::Int32).compute_size(&self.partition_indexes)?;
             }
         } else {
             if !self.partition_indexes.is_empty() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 2 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -307,17 +321,17 @@ impl Message for StopReplicaTopicV1 {
 #[builder(default)]
 pub struct StopReplicaPartitionState {
     /// The partition index.
-    /// 
+    ///
     /// Supported API versions: 3
     pub partition_index: i32,
 
     /// The leader epoch.
-    /// 
+    ///
     /// Supported API versions: 3
     pub leader_epoch: i32,
 
     /// Whether this partition should be deleted.
-    /// 
+    ///
     /// Supported API versions: 3
     pub delete_partition: bool,
 
@@ -328,7 +342,7 @@ pub struct StopReplicaPartitionState {
 impl Builder for StopReplicaPartitionState {
     type Builder = StopReplicaPartitionStateBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         StopReplicaPartitionStateBuilder::default()
     }
 }
@@ -339,27 +353,30 @@ impl Encodable for StopReplicaPartitionState {
             types::Int32.encode(buf, &self.partition_index)?;
         } else {
             if self.partition_index != 0 {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 3 {
             types::Int32.encode(buf, &self.leader_epoch)?;
         } else {
             if self.leader_epoch != -1 {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 3 {
             types::Boolean.encode(buf, &self.delete_partition)?;
         } else {
             if self.delete_partition {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 2 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -374,27 +391,30 @@ impl Encodable for StopReplicaPartitionState {
             total_size += types::Int32.compute_size(&self.partition_index)?;
         } else {
             if self.partition_index != 0 {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 3 {
             total_size += types::Int32.compute_size(&self.leader_epoch)?;
         } else {
             if self.leader_epoch != -1 {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 3 {
             total_size += types::Boolean.compute_size(&self.delete_partition)?;
         } else {
             if self.delete_partition {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 2 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -463,12 +483,12 @@ impl Message for StopReplicaPartitionState {
 #[builder(default)]
 pub struct StopReplicaTopicState {
     /// The topic name.
-    /// 
+    ///
     /// Supported API versions: 3
     pub topic_name: super::TopicName,
 
     /// The state of each partition
-    /// 
+    ///
     /// Supported API versions: 3
     pub partition_states: Vec<StopReplicaPartitionState>,
 
@@ -479,7 +499,7 @@ pub struct StopReplicaTopicState {
 impl Builder for StopReplicaTopicState {
     type Builder = StopReplicaTopicStateBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         StopReplicaTopicStateBuilder::default()
     }
 }
@@ -490,20 +510,23 @@ impl Encodable for StopReplicaTopicState {
             types::CompactString.encode(buf, &self.topic_name)?;
         } else {
             if !self.topic_name.is_empty() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 3 {
             types::CompactArray(types::Struct { version }).encode(buf, &self.partition_states)?;
         } else {
             if !self.partition_states.is_empty() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 2 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -518,20 +541,24 @@ impl Encodable for StopReplicaTopicState {
             total_size += types::CompactString.compute_size(&self.topic_name)?;
         } else {
             if !self.topic_name.is_empty() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 3 {
-            total_size += types::CompactArray(types::Struct { version }).compute_size(&self.partition_states)?;
+            total_size += types::CompactArray(types::Struct { version })
+                .compute_size(&self.partition_states)?;
         } else {
             if !self.partition_states.is_empty() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 2 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -593,37 +620,37 @@ impl Message for StopReplicaTopicState {
 #[builder(default)]
 pub struct StopReplicaRequest {
     /// The controller id.
-    /// 
+    ///
     /// Supported API versions: 0-3
     pub controller_id: super::BrokerId,
 
     /// The controller epoch.
-    /// 
+    ///
     /// Supported API versions: 0-3
     pub controller_epoch: i32,
 
     /// The broker epoch.
-    /// 
+    ///
     /// Supported API versions: 1-3
     pub broker_epoch: i64,
 
     /// Whether these partitions should be deleted.
-    /// 
+    ///
     /// Supported API versions: 0-2
     pub delete_partitions: bool,
 
     /// The partitions to stop.
-    /// 
+    ///
     /// Supported API versions: 0
     pub ungrouped_partitions: Vec<StopReplicaPartitionV0>,
 
     /// The topics to stop.
-    /// 
+    ///
     /// Supported API versions: 1-2
     pub topics: Vec<StopReplicaTopicV1>,
 
     /// Each topic.
-    /// 
+    ///
     /// Supported API versions: 3
     pub topic_states: Vec<StopReplicaTopicState>,
 
@@ -634,7 +661,7 @@ pub struct StopReplicaRequest {
 impl Builder for StopReplicaRequest {
     type Builder = StopReplicaRequestBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         StopReplicaRequestBuilder::default()
     }
 }
@@ -650,14 +677,14 @@ impl Encodable for StopReplicaRequest {
             types::Boolean.encode(buf, &self.delete_partitions)?;
         } else {
             if self.delete_partitions {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version == 0 {
             types::Array(types::Struct { version }).encode(buf, &self.ungrouped_partitions)?;
         } else {
             if !self.ungrouped_partitions.is_empty() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 1 && version <= 2 {
@@ -668,20 +695,23 @@ impl Encodable for StopReplicaRequest {
             }
         } else {
             if !self.topics.is_empty() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 3 {
             types::CompactArray(types::Struct { version }).encode(buf, &self.topic_states)?;
         } else {
             if !self.topic_states.is_empty() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 2 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -701,38 +731,44 @@ impl Encodable for StopReplicaRequest {
             total_size += types::Boolean.compute_size(&self.delete_partitions)?;
         } else {
             if self.delete_partitions {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version == 0 {
-            total_size += types::Array(types::Struct { version }).compute_size(&self.ungrouped_partitions)?;
+            total_size +=
+                types::Array(types::Struct { version }).compute_size(&self.ungrouped_partitions)?;
         } else {
             if !self.ungrouped_partitions.is_empty() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 1 && version <= 2 {
             if version >= 2 {
-                total_size += types::CompactArray(types::Struct { version }).compute_size(&self.topics)?;
+                total_size +=
+                    types::CompactArray(types::Struct { version }).compute_size(&self.topics)?;
             } else {
                 total_size += types::Array(types::Struct { version }).compute_size(&self.topics)?;
             }
         } else {
             if !self.topics.is_empty() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 3 {
-            total_size += types::CompactArray(types::Struct { version }).compute_size(&self.topic_states)?;
+            total_size +=
+                types::CompactArray(types::Struct { version }).compute_size(&self.topic_states)?;
         } else {
             if !self.topic_states.is_empty() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 2 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -828,4 +864,3 @@ impl HeaderVersion for StopReplicaRequest {
         }
     }
 }
-

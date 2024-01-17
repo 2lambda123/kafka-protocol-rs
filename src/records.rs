@@ -31,10 +31,10 @@
 //! }
 //! ```
 use bytes::Bytes;
-use indexmap::IndexMap;
+use crc::{Crc, CRC_32_CKSUM};
 use crc32c::crc32c;
+use indexmap::IndexMap;
 use log::error;
-use crc::{CRC_32_CKSUM, Crc};
 use string::TryFrom;
 
 use crate::protocol::{
@@ -500,7 +500,7 @@ impl RecordBatchDecoder {
         // CRC
         let supplied_crc: u32 = types::UInt32.decode(buf)?;
         let actual_crc = crc32c(buf);
-        
+
         if supplied_crc != actual_crc {
             error!(
                 "Cyclic redundancy check failed ({} != {})",

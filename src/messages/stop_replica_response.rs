@@ -12,10 +12,11 @@ use log::error;
 use uuid::Uuid;
 
 use crate::protocol::{
-    Encodable, Decodable, MapEncodable, MapDecodable, Encoder, Decoder, EncodeError, DecodeError, Message, HeaderVersion, VersionRange,
-    types, write_unknown_tagged_fields, compute_unknown_tagged_fields_size, StrBytes, buf::{ByteBuf, ByteBufMut}, Builder
+    buf::{ByteBuf, ByteBufMut},
+    compute_unknown_tagged_fields_size, types, write_unknown_tagged_fields, Builder, Decodable,
+    DecodeError, Decoder, Encodable, EncodeError, Encoder, HeaderVersion, MapDecodable,
+    MapEncodable, Message, StrBytes, VersionRange,
 };
-
 
 /// Valid versions: 0-3
 #[non_exhaustive]
@@ -23,17 +24,17 @@ use crate::protocol::{
 #[builder(default)]
 pub struct StopReplicaPartitionError {
     /// The topic name.
-    /// 
+    ///
     /// Supported API versions: 0-3
     pub topic_name: super::TopicName,
 
     /// The partition index.
-    /// 
+    ///
     /// Supported API versions: 0-3
     pub partition_index: i32,
 
     /// The partition error code, or 0 if there was no partition error.
-    /// 
+    ///
     /// Supported API versions: 0-3
     pub error_code: i16,
 
@@ -44,7 +45,7 @@ pub struct StopReplicaPartitionError {
 impl Builder for StopReplicaPartitionError {
     type Builder = StopReplicaPartitionErrorBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         StopReplicaPartitionErrorBuilder::default()
     }
 }
@@ -61,7 +62,10 @@ impl Encodable for StopReplicaPartitionError {
         if version >= 2 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -82,7 +86,10 @@ impl Encodable for StopReplicaPartitionError {
         if version >= 2 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -143,12 +150,12 @@ impl Message for StopReplicaPartitionError {
 #[builder(default)]
 pub struct StopReplicaResponse {
     /// The top-level error code, or 0 if there was no top-level error.
-    /// 
+    ///
     /// Supported API versions: 0-3
     pub error_code: i16,
 
     /// The responses for each partition.
-    /// 
+    ///
     /// Supported API versions: 0-3
     pub partition_errors: Vec<StopReplicaPartitionError>,
 
@@ -159,7 +166,7 @@ pub struct StopReplicaResponse {
 impl Builder for StopReplicaResponse {
     type Builder = StopReplicaResponseBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         StopReplicaResponseBuilder::default()
     }
 }
@@ -175,7 +182,10 @@ impl Encodable for StopReplicaResponse {
         if version >= 2 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -188,14 +198,19 @@ impl Encodable for StopReplicaResponse {
         let mut total_size = 0;
         total_size += types::Int16.compute_size(&self.error_code)?;
         if version >= 2 {
-            total_size += types::CompactArray(types::Struct { version }).compute_size(&self.partition_errors)?;
+            total_size += types::CompactArray(types::Struct { version })
+                .compute_size(&self.partition_errors)?;
         } else {
-            total_size += types::Array(types::Struct { version }).compute_size(&self.partition_errors)?;
+            total_size +=
+                types::Array(types::Struct { version }).compute_size(&self.partition_errors)?;
         }
         if version >= 2 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -256,4 +271,3 @@ impl HeaderVersion for StopReplicaResponse {
         }
     }
 }
-

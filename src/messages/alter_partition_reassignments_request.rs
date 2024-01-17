@@ -12,10 +12,11 @@ use log::error;
 use uuid::Uuid;
 
 use crate::protocol::{
-    Encodable, Decodable, MapEncodable, MapDecodable, Encoder, Decoder, EncodeError, DecodeError, Message, HeaderVersion, VersionRange,
-    types, write_unknown_tagged_fields, compute_unknown_tagged_fields_size, StrBytes, buf::{ByteBuf, ByteBufMut}, Builder
+    buf::{ByteBuf, ByteBufMut},
+    compute_unknown_tagged_fields_size, types, write_unknown_tagged_fields, Builder, Decodable,
+    DecodeError, Decoder, Encodable, EncodeError, Encoder, HeaderVersion, MapDecodable,
+    MapEncodable, Message, StrBytes, VersionRange,
 };
-
 
 /// Valid versions: 0
 #[non_exhaustive]
@@ -23,12 +24,12 @@ use crate::protocol::{
 #[builder(default)]
 pub struct ReassignablePartition {
     /// The partition index.
-    /// 
+    ///
     /// Supported API versions: 0
     pub partition_index: i32,
 
     /// The replicas to place the partitions on, or null to cancel a pending reassignment for this partition.
-    /// 
+    ///
     /// Supported API versions: 0
     pub replicas: Option<Vec<super::BrokerId>>,
 
@@ -39,7 +40,7 @@ pub struct ReassignablePartition {
 impl Builder for ReassignablePartition {
     type Builder = ReassignablePartitionBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         ReassignablePartitionBuilder::default()
     }
 }
@@ -50,7 +51,10 @@ impl Encodable for ReassignablePartition {
         types::CompactArray(types::Int32).encode(buf, &self.replicas)?;
         let num_tagged_fields = self.unknown_tagged_fields.len();
         if num_tagged_fields > std::u32::MAX as usize {
-            error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+            error!(
+                "Too many tagged fields to encode ({} fields)",
+                num_tagged_fields
+            );
             return Err(EncodeError);
         }
         types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -64,7 +68,10 @@ impl Encodable for ReassignablePartition {
         total_size += types::CompactArray(types::Int32).compute_size(&self.replicas)?;
         let num_tagged_fields = self.unknown_tagged_fields.len();
         if num_tagged_fields > std::u32::MAX as usize {
-            error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+            error!(
+                "Too many tagged fields to encode ({} fields)",
+                num_tagged_fields
+            );
             return Err(EncodeError);
         }
         total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -115,12 +122,12 @@ impl Message for ReassignablePartition {
 #[builder(default)]
 pub struct ReassignableTopic {
     /// The topic name.
-    /// 
+    ///
     /// Supported API versions: 0
     pub name: super::TopicName,
 
     /// The partitions to reassign.
-    /// 
+    ///
     /// Supported API versions: 0
     pub partitions: Vec<ReassignablePartition>,
 
@@ -131,7 +138,7 @@ pub struct ReassignableTopic {
 impl Builder for ReassignableTopic {
     type Builder = ReassignableTopicBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         ReassignableTopicBuilder::default()
     }
 }
@@ -142,7 +149,10 @@ impl Encodable for ReassignableTopic {
         types::CompactArray(types::Struct { version }).encode(buf, &self.partitions)?;
         let num_tagged_fields = self.unknown_tagged_fields.len();
         if num_tagged_fields > std::u32::MAX as usize {
-            error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+            error!(
+                "Too many tagged fields to encode ({} fields)",
+                num_tagged_fields
+            );
             return Err(EncodeError);
         }
         types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -153,10 +163,14 @@ impl Encodable for ReassignableTopic {
     fn compute_size(&self, version: i16) -> Result<usize, EncodeError> {
         let mut total_size = 0;
         total_size += types::CompactString.compute_size(&self.name)?;
-        total_size += types::CompactArray(types::Struct { version }).compute_size(&self.partitions)?;
+        total_size +=
+            types::CompactArray(types::Struct { version }).compute_size(&self.partitions)?;
         let num_tagged_fields = self.unknown_tagged_fields.len();
         if num_tagged_fields > std::u32::MAX as usize {
-            error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+            error!(
+                "Too many tagged fields to encode ({} fields)",
+                num_tagged_fields
+            );
             return Err(EncodeError);
         }
         total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -207,12 +221,12 @@ impl Message for ReassignableTopic {
 #[builder(default)]
 pub struct AlterPartitionReassignmentsRequest {
     /// The time in ms to wait for the request to complete.
-    /// 
+    ///
     /// Supported API versions: 0
     pub timeout_ms: i32,
 
     /// The topics to reassign.
-    /// 
+    ///
     /// Supported API versions: 0
     pub topics: Vec<ReassignableTopic>,
 
@@ -223,7 +237,7 @@ pub struct AlterPartitionReassignmentsRequest {
 impl Builder for AlterPartitionReassignmentsRequest {
     type Builder = AlterPartitionReassignmentsRequestBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         AlterPartitionReassignmentsRequestBuilder::default()
     }
 }
@@ -234,7 +248,10 @@ impl Encodable for AlterPartitionReassignmentsRequest {
         types::CompactArray(types::Struct { version }).encode(buf, &self.topics)?;
         let num_tagged_fields = self.unknown_tagged_fields.len();
         if num_tagged_fields > std::u32::MAX as usize {
-            error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+            error!(
+                "Too many tagged fields to encode ({} fields)",
+                num_tagged_fields
+            );
             return Err(EncodeError);
         }
         types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -248,7 +265,10 @@ impl Encodable for AlterPartitionReassignmentsRequest {
         total_size += types::CompactArray(types::Struct { version }).compute_size(&self.topics)?;
         let num_tagged_fields = self.unknown_tagged_fields.len();
         if num_tagged_fields > std::u32::MAX as usize {
-            error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+            error!(
+                "Too many tagged fields to encode ({} fields)",
+                num_tagged_fields
+            );
             return Err(EncodeError);
         }
         total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -298,4 +318,3 @@ impl HeaderVersion for AlterPartitionReassignmentsRequest {
         2
     }
 }
-

@@ -12,10 +12,11 @@ use log::error;
 use uuid::Uuid;
 
 use crate::protocol::{
-    Encodable, Decodable, MapEncodable, MapDecodable, Encoder, Decoder, EncodeError, DecodeError, Message, HeaderVersion, VersionRange,
-    types, write_unknown_tagged_fields, compute_unknown_tagged_fields_size, StrBytes, buf::{ByteBuf, ByteBufMut}, Builder
+    buf::{ByteBuf, ByteBufMut},
+    compute_unknown_tagged_fields_size, types, write_unknown_tagged_fields, Builder, Decodable,
+    DecodeError, Decoder, Encodable, EncodeError, Encoder, HeaderVersion, MapDecodable,
+    MapEncodable, Message, StrBytes, VersionRange,
 };
-
 
 /// Valid versions: 0-3
 #[non_exhaustive]
@@ -23,12 +24,12 @@ use crate::protocol::{
 #[builder(default)]
 pub struct TxnOffsetCommitResponsePartition {
     /// The partition index.
-    /// 
+    ///
     /// Supported API versions: 0-3
     pub partition_index: i32,
 
     /// The error code, or 0 if there was no error.
-    /// 
+    ///
     /// Supported API versions: 0-3
     pub error_code: i16,
 
@@ -39,7 +40,7 @@ pub struct TxnOffsetCommitResponsePartition {
 impl Builder for TxnOffsetCommitResponsePartition {
     type Builder = TxnOffsetCommitResponsePartitionBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         TxnOffsetCommitResponsePartitionBuilder::default()
     }
 }
@@ -51,7 +52,10 @@ impl Encodable for TxnOffsetCommitResponsePartition {
         if version >= 3 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -67,7 +71,10 @@ impl Encodable for TxnOffsetCommitResponsePartition {
         if version >= 3 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -121,12 +128,12 @@ impl Message for TxnOffsetCommitResponsePartition {
 #[builder(default)]
 pub struct TxnOffsetCommitResponseTopic {
     /// The topic name.
-    /// 
+    ///
     /// Supported API versions: 0-3
     pub name: super::TopicName,
 
     /// The responses for each partition in the topic.
-    /// 
+    ///
     /// Supported API versions: 0-3
     pub partitions: Vec<TxnOffsetCommitResponsePartition>,
 
@@ -137,7 +144,7 @@ pub struct TxnOffsetCommitResponseTopic {
 impl Builder for TxnOffsetCommitResponseTopic {
     type Builder = TxnOffsetCommitResponseTopicBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         TxnOffsetCommitResponseTopicBuilder::default()
     }
 }
@@ -157,7 +164,10 @@ impl Encodable for TxnOffsetCommitResponseTopic {
         if version >= 3 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -174,14 +184,18 @@ impl Encodable for TxnOffsetCommitResponseTopic {
             total_size += types::String.compute_size(&self.name)?;
         }
         if version >= 3 {
-            total_size += types::CompactArray(types::Struct { version }).compute_size(&self.partitions)?;
+            total_size +=
+                types::CompactArray(types::Struct { version }).compute_size(&self.partitions)?;
         } else {
             total_size += types::Array(types::Struct { version }).compute_size(&self.partitions)?;
         }
         if version >= 3 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -243,12 +257,12 @@ impl Message for TxnOffsetCommitResponseTopic {
 #[builder(default)]
 pub struct TxnOffsetCommitResponse {
     /// The duration in milliseconds for which the request was throttled due to a quota violation, or zero if the request did not violate any quota.
-    /// 
+    ///
     /// Supported API versions: 0-3
     pub throttle_time_ms: i32,
 
     /// The responses for each topic.
-    /// 
+    ///
     /// Supported API versions: 0-3
     pub topics: Vec<TxnOffsetCommitResponseTopic>,
 
@@ -259,7 +273,7 @@ pub struct TxnOffsetCommitResponse {
 impl Builder for TxnOffsetCommitResponse {
     type Builder = TxnOffsetCommitResponseBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         TxnOffsetCommitResponseBuilder::default()
     }
 }
@@ -275,7 +289,10 @@ impl Encodable for TxnOffsetCommitResponse {
         if version >= 3 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -288,14 +305,18 @@ impl Encodable for TxnOffsetCommitResponse {
         let mut total_size = 0;
         total_size += types::Int32.compute_size(&self.throttle_time_ms)?;
         if version >= 3 {
-            total_size += types::CompactArray(types::Struct { version }).compute_size(&self.topics)?;
+            total_size +=
+                types::CompactArray(types::Struct { version }).compute_size(&self.topics)?;
         } else {
             total_size += types::Array(types::Struct { version }).compute_size(&self.topics)?;
         }
         if version >= 3 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -356,4 +377,3 @@ impl HeaderVersion for TxnOffsetCommitResponse {
         }
     }
 }
-

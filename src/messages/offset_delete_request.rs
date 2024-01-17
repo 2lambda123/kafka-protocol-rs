@@ -12,10 +12,11 @@ use log::error;
 use uuid::Uuid;
 
 use crate::protocol::{
-    Encodable, Decodable, MapEncodable, MapDecodable, Encoder, Decoder, EncodeError, DecodeError, Message, HeaderVersion, VersionRange,
-    types, write_unknown_tagged_fields, compute_unknown_tagged_fields_size, StrBytes, buf::{ByteBuf, ByteBufMut}, Builder
+    buf::{ByteBuf, ByteBufMut},
+    compute_unknown_tagged_fields_size, types, write_unknown_tagged_fields, Builder, Decodable,
+    DecodeError, Decoder, Encodable, EncodeError, Encoder, HeaderVersion, MapDecodable,
+    MapEncodable, Message, StrBytes, VersionRange,
 };
-
 
 /// Valid versions: 0
 #[non_exhaustive]
@@ -23,16 +24,15 @@ use crate::protocol::{
 #[builder(default)]
 pub struct OffsetDeleteRequestPartition {
     /// The partition index.
-    /// 
+    ///
     /// Supported API versions: 0
     pub partition_index: i32,
-
 }
 
 impl Builder for OffsetDeleteRequestPartition {
     type Builder = OffsetDeleteRequestPartitionBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         OffsetDeleteRequestPartitionBuilder::default()
     }
 }
@@ -54,17 +54,13 @@ impl Encodable for OffsetDeleteRequestPartition {
 impl Decodable for OffsetDeleteRequestPartition {
     fn decode<B: ByteBuf>(buf: &mut B, version: i16) -> Result<Self, DecodeError> {
         let partition_index = types::Int32.decode(buf)?;
-        Ok(Self {
-            partition_index,
-        })
+        Ok(Self { partition_index })
     }
 }
 
 impl Default for OffsetDeleteRequestPartition {
     fn default() -> Self {
-        Self {
-            partition_index: 0,
-        }
+        Self { partition_index: 0 }
     }
 }
 
@@ -78,23 +74,27 @@ impl Message for OffsetDeleteRequestPartition {
 #[builder(default)]
 pub struct OffsetDeleteRequestTopic {
     /// Each partition to delete offsets for.
-    /// 
+    ///
     /// Supported API versions: 0
     pub partitions: Vec<OffsetDeleteRequestPartition>,
-
 }
 
 impl Builder for OffsetDeleteRequestTopic {
     type Builder = OffsetDeleteRequestTopicBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         OffsetDeleteRequestTopicBuilder::default()
     }
 }
 
 impl MapEncodable for OffsetDeleteRequestTopic {
     type Key = super::TopicName;
-    fn encode<B: ByteBufMut>(&self, key: &Self::Key, buf: &mut B, version: i16) -> Result<(), EncodeError> {
+    fn encode<B: ByteBufMut>(
+        &self,
+        key: &Self::Key,
+        buf: &mut B,
+        version: i16,
+    ) -> Result<(), EncodeError> {
         types::String.encode(buf, key)?;
         types::Array(types::Struct { version }).encode(buf, &self.partitions)?;
 
@@ -114,9 +114,7 @@ impl MapDecodable for OffsetDeleteRequestTopic {
     fn decode<B: ByteBuf>(buf: &mut B, version: i16) -> Result<(Self::Key, Self), DecodeError> {
         let key_field = types::String.decode(buf)?;
         let partitions = types::Array(types::Struct { version }).decode(buf)?;
-        Ok((key_field, Self {
-            partitions,
-        }))
+        Ok((key_field, Self { partitions }))
     }
 }
 
@@ -138,21 +136,20 @@ impl Message for OffsetDeleteRequestTopic {
 #[builder(default)]
 pub struct OffsetDeleteRequest {
     /// The unique group identifier.
-    /// 
+    ///
     /// Supported API versions: 0
     pub group_id: super::GroupId,
 
     /// The topics to delete offsets for
-    /// 
+    ///
     /// Supported API versions: 0
     pub topics: indexmap::IndexMap<super::TopicName, OffsetDeleteRequestTopic>,
-
 }
 
 impl Builder for OffsetDeleteRequest {
     type Builder = OffsetDeleteRequestBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         OffsetDeleteRequestBuilder::default()
     }
 }
@@ -177,10 +174,7 @@ impl Decodable for OffsetDeleteRequest {
     fn decode<B: ByteBuf>(buf: &mut B, version: i16) -> Result<Self, DecodeError> {
         let group_id = types::String.decode(buf)?;
         let topics = types::Array(types::Struct { version }).decode(buf)?;
-        Ok(Self {
-            group_id,
-            topics,
-        })
+        Ok(Self { group_id, topics })
     }
 }
 
@@ -202,4 +196,3 @@ impl HeaderVersion for OffsetDeleteRequest {
         1
     }
 }
-

@@ -12,10 +12,11 @@ use log::error;
 use uuid::Uuid;
 
 use crate::protocol::{
-    Encodable, Decodable, MapEncodable, MapDecodable, Encoder, Decoder, EncodeError, DecodeError, Message, HeaderVersion, VersionRange,
-    types, write_unknown_tagged_fields, compute_unknown_tagged_fields_size, StrBytes, buf::{ByteBuf, ByteBufMut}, Builder
+    buf::{ByteBuf, ByteBufMut},
+    compute_unknown_tagged_fields_size, types, write_unknown_tagged_fields, Builder, Decodable,
+    DecodeError, Decoder, Encodable, EncodeError, Encoder, HeaderVersion, MapDecodable,
+    MapEncodable, Message, StrBytes, VersionRange,
 };
-
 
 /// Valid versions: 0-2
 #[non_exhaustive]
@@ -23,27 +24,27 @@ use crate::protocol::{
 #[builder(default)]
 pub struct PartitionData {
     /// The partition index
-    /// 
+    ///
     /// Supported API versions: 0-2
     pub partition_index: i32,
 
     /// The leader epoch of this partition
-    /// 
+    ///
     /// Supported API versions: 0-2
     pub leader_epoch: i32,
 
     /// The ISR for this partition
-    /// 
+    ///
     /// Supported API versions: 0-2
     pub new_isr: Vec<super::BrokerId>,
 
     /// 1 if the partition is recovering from an unclean leader election; 0 otherwise.
-    /// 
+    ///
     /// Supported API versions: 1-2
     pub leader_recovery_state: i8,
 
     /// The expected epoch of the partition which is being updated. For legacy cluster this is the ZkVersion in the LeaderAndIsr request.
-    /// 
+    ///
     /// Supported API versions: 0-2
     pub partition_epoch: i32,
 
@@ -54,7 +55,7 @@ pub struct PartitionData {
 impl Builder for PartitionData {
     type Builder = PartitionDataBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         PartitionDataBuilder::default()
     }
 }
@@ -68,13 +69,16 @@ impl Encodable for PartitionData {
             types::Int8.encode(buf, &self.leader_recovery_state)?;
         } else {
             if self.leader_recovery_state != 0 {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         types::Int32.encode(buf, &self.partition_epoch)?;
         let num_tagged_fields = self.unknown_tagged_fields.len();
         if num_tagged_fields > std::u32::MAX as usize {
-            error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+            error!(
+                "Too many tagged fields to encode ({} fields)",
+                num_tagged_fields
+            );
             return Err(EncodeError);
         }
         types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -91,13 +95,16 @@ impl Encodable for PartitionData {
             total_size += types::Int8.compute_size(&self.leader_recovery_state)?;
         } else {
             if self.leader_recovery_state != 0 {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         total_size += types::Int32.compute_size(&self.partition_epoch)?;
         let num_tagged_fields = self.unknown_tagged_fields.len();
         if num_tagged_fields > std::u32::MAX as usize {
-            error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+            error!(
+                "Too many tagged fields to encode ({} fields)",
+                num_tagged_fields
+            );
             return Err(EncodeError);
         }
         total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -161,17 +168,17 @@ impl Message for PartitionData {
 #[builder(default)]
 pub struct TopicData {
     /// The name of the topic to alter ISRs for
-    /// 
+    ///
     /// Supported API versions: 0-1
     pub topic_name: super::TopicName,
 
     /// The ID of the topic to alter ISRs for
-    /// 
+    ///
     /// Supported API versions: 2
     pub topic_id: Uuid,
 
-    /// 
-    /// 
+    ///
+    ///
     /// Supported API versions: 0-2
     pub partitions: Vec<PartitionData>,
 
@@ -182,7 +189,7 @@ pub struct TopicData {
 impl Builder for TopicData {
     type Builder = TopicDataBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         TopicDataBuilder::default()
     }
 }
@@ -198,7 +205,10 @@ impl Encodable for TopicData {
         types::CompactArray(types::Struct { version }).encode(buf, &self.partitions)?;
         let num_tagged_fields = self.unknown_tagged_fields.len();
         if num_tagged_fields > std::u32::MAX as usize {
-            error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+            error!(
+                "Too many tagged fields to encode ({} fields)",
+                num_tagged_fields
+            );
             return Err(EncodeError);
         }
         types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -214,10 +224,14 @@ impl Encodable for TopicData {
         if version >= 2 {
             total_size += types::Uuid.compute_size(&self.topic_id)?;
         }
-        total_size += types::CompactArray(types::Struct { version }).compute_size(&self.partitions)?;
+        total_size +=
+            types::CompactArray(types::Struct { version }).compute_size(&self.partitions)?;
         let num_tagged_fields = self.unknown_tagged_fields.len();
         if num_tagged_fields > std::u32::MAX as usize {
-            error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+            error!(
+                "Too many tagged fields to encode ({} fields)",
+                num_tagged_fields
+            );
             return Err(EncodeError);
         }
         total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -279,17 +293,17 @@ impl Message for TopicData {
 #[builder(default)]
 pub struct AlterPartitionRequest {
     /// The ID of the requesting broker
-    /// 
+    ///
     /// Supported API versions: 0-2
     pub broker_id: super::BrokerId,
 
     /// The epoch of the requesting broker
-    /// 
+    ///
     /// Supported API versions: 0-2
     pub broker_epoch: i64,
 
-    /// 
-    /// 
+    ///
+    ///
     /// Supported API versions: 0-2
     pub topics: Vec<TopicData>,
 
@@ -300,7 +314,7 @@ pub struct AlterPartitionRequest {
 impl Builder for AlterPartitionRequest {
     type Builder = AlterPartitionRequestBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         AlterPartitionRequestBuilder::default()
     }
 }
@@ -312,7 +326,10 @@ impl Encodable for AlterPartitionRequest {
         types::CompactArray(types::Struct { version }).encode(buf, &self.topics)?;
         let num_tagged_fields = self.unknown_tagged_fields.len();
         if num_tagged_fields > std::u32::MAX as usize {
-            error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+            error!(
+                "Too many tagged fields to encode ({} fields)",
+                num_tagged_fields
+            );
             return Err(EncodeError);
         }
         types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -327,7 +344,10 @@ impl Encodable for AlterPartitionRequest {
         total_size += types::CompactArray(types::Struct { version }).compute_size(&self.topics)?;
         let num_tagged_fields = self.unknown_tagged_fields.len();
         if num_tagged_fields > std::u32::MAX as usize {
-            error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+            error!(
+                "Too many tagged fields to encode ({} fields)",
+                num_tagged_fields
+            );
             return Err(EncodeError);
         }
         total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -380,4 +400,3 @@ impl HeaderVersion for AlterPartitionRequest {
         2
     }
 }
-

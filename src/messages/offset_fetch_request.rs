@@ -12,10 +12,11 @@ use log::error;
 use uuid::Uuid;
 
 use crate::protocol::{
-    Encodable, Decodable, MapEncodable, MapDecodable, Encoder, Decoder, EncodeError, DecodeError, Message, HeaderVersion, VersionRange,
-    types, write_unknown_tagged_fields, compute_unknown_tagged_fields_size, StrBytes, buf::{ByteBuf, ByteBufMut}, Builder
+    buf::{ByteBuf, ByteBufMut},
+    compute_unknown_tagged_fields_size, types, write_unknown_tagged_fields, Builder, Decodable,
+    DecodeError, Decoder, Encodable, EncodeError, Encoder, HeaderVersion, MapDecodable,
+    MapEncodable, Message, StrBytes, VersionRange,
 };
-
 
 /// Valid versions: 0-8
 #[non_exhaustive]
@@ -23,12 +24,12 @@ use crate::protocol::{
 #[builder(default)]
 pub struct OffsetFetchRequestTopic {
     /// The topic name.
-    /// 
+    ///
     /// Supported API versions: 0-7
     pub name: super::TopicName,
 
     /// The partition indexes we would like to fetch offsets for.
-    /// 
+    ///
     /// Supported API versions: 0-7
     pub partition_indexes: Vec<i32>,
 
@@ -39,7 +40,7 @@ pub struct OffsetFetchRequestTopic {
 impl Builder for OffsetFetchRequestTopic {
     type Builder = OffsetFetchRequestTopicBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         OffsetFetchRequestTopicBuilder::default()
     }
 }
@@ -54,7 +55,7 @@ impl Encodable for OffsetFetchRequestTopic {
             }
         } else {
             if !self.name.is_empty() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version <= 7 {
@@ -65,13 +66,16 @@ impl Encodable for OffsetFetchRequestTopic {
             }
         } else {
             if !self.partition_indexes.is_empty() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 6 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -90,24 +94,28 @@ impl Encodable for OffsetFetchRequestTopic {
             }
         } else {
             if !self.name.is_empty() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version <= 7 {
             if version >= 6 {
-                total_size += types::CompactArray(types::Int32).compute_size(&self.partition_indexes)?;
+                total_size +=
+                    types::CompactArray(types::Int32).compute_size(&self.partition_indexes)?;
             } else {
                 total_size += types::Array(types::Int32).compute_size(&self.partition_indexes)?;
             }
         } else {
             if !self.partition_indexes.is_empty() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 6 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -177,12 +185,12 @@ impl Message for OffsetFetchRequestTopic {
 #[builder(default)]
 pub struct OffsetFetchRequestTopics {
     /// The topic name.
-    /// 
+    ///
     /// Supported API versions: 8
     pub name: super::TopicName,
 
     /// The partition indexes we would like to fetch offsets for.
-    /// 
+    ///
     /// Supported API versions: 8
     pub partition_indexes: Vec<i32>,
 
@@ -193,7 +201,7 @@ pub struct OffsetFetchRequestTopics {
 impl Builder for OffsetFetchRequestTopics {
     type Builder = OffsetFetchRequestTopicsBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         OffsetFetchRequestTopicsBuilder::default()
     }
 }
@@ -204,20 +212,23 @@ impl Encodable for OffsetFetchRequestTopics {
             types::CompactString.encode(buf, &self.name)?;
         } else {
             if !self.name.is_empty() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 8 {
             types::CompactArray(types::Int32).encode(buf, &self.partition_indexes)?;
         } else {
             if !self.partition_indexes.is_empty() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 6 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -232,20 +243,24 @@ impl Encodable for OffsetFetchRequestTopics {
             total_size += types::CompactString.compute_size(&self.name)?;
         } else {
             if !self.name.is_empty() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 8 {
-            total_size += types::CompactArray(types::Int32).compute_size(&self.partition_indexes)?;
+            total_size +=
+                types::CompactArray(types::Int32).compute_size(&self.partition_indexes)?;
         } else {
             if !self.partition_indexes.is_empty() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 6 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -307,12 +322,12 @@ impl Message for OffsetFetchRequestTopics {
 #[builder(default)]
 pub struct OffsetFetchRequestGroup {
     /// The group ID.
-    /// 
+    ///
     /// Supported API versions: 8
     pub group_id: super::GroupId,
 
     /// Each topic we would like to fetch offsets for, or null to fetch offsets for all topics.
-    /// 
+    ///
     /// Supported API versions: 8
     pub topics: Option<Vec<OffsetFetchRequestTopics>>,
 
@@ -323,7 +338,7 @@ pub struct OffsetFetchRequestGroup {
 impl Builder for OffsetFetchRequestGroup {
     type Builder = OffsetFetchRequestGroupBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         OffsetFetchRequestGroupBuilder::default()
     }
 }
@@ -334,20 +349,28 @@ impl Encodable for OffsetFetchRequestGroup {
             types::CompactString.encode(buf, &self.group_id)?;
         } else {
             if !self.group_id.is_empty() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 8 {
             types::CompactArray(types::Struct { version }).encode(buf, &self.topics)?;
         } else {
-            if !self.topics.as_ref().map(|x| x.is_empty()).unwrap_or_default() {
-                return Err(EncodeError)
+            if !self
+                .topics
+                .as_ref()
+                .map(|x| x.is_empty())
+                .unwrap_or_default()
+            {
+                return Err(EncodeError);
             }
         }
         if version >= 6 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -362,20 +385,29 @@ impl Encodable for OffsetFetchRequestGroup {
             total_size += types::CompactString.compute_size(&self.group_id)?;
         } else {
             if !self.group_id.is_empty() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 8 {
-            total_size += types::CompactArray(types::Struct { version }).compute_size(&self.topics)?;
+            total_size +=
+                types::CompactArray(types::Struct { version }).compute_size(&self.topics)?;
         } else {
-            if !self.topics.as_ref().map(|x| x.is_empty()).unwrap_or_default() {
-                return Err(EncodeError)
+            if !self
+                .topics
+                .as_ref()
+                .map(|x| x.is_empty())
+                .unwrap_or_default()
+            {
+                return Err(EncodeError);
             }
         }
         if version >= 6 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -437,22 +469,22 @@ impl Message for OffsetFetchRequestGroup {
 #[builder(default)]
 pub struct OffsetFetchRequest {
     /// The group to fetch offsets for.
-    /// 
+    ///
     /// Supported API versions: 0-7
     pub group_id: super::GroupId,
 
     /// Each topic we would like to fetch offsets for, or null to fetch offsets for all topics.
-    /// 
+    ///
     /// Supported API versions: 0-7
     pub topics: Option<Vec<OffsetFetchRequestTopic>>,
 
     /// Each group we would like to fetch offsets for
-    /// 
+    ///
     /// Supported API versions: 8
     pub groups: Vec<OffsetFetchRequestGroup>,
 
     /// Whether broker should hold on returning unstable offsets but set a retriable error code for the partitions.
-    /// 
+    ///
     /// Supported API versions: 7-8
     pub require_stable: bool,
 
@@ -463,7 +495,7 @@ pub struct OffsetFetchRequest {
 impl Builder for OffsetFetchRequest {
     type Builder = OffsetFetchRequestBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         OffsetFetchRequestBuilder::default()
     }
 }
@@ -478,7 +510,7 @@ impl Encodable for OffsetFetchRequest {
             }
         } else {
             if !self.group_id.is_empty() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version <= 7 {
@@ -488,28 +520,36 @@ impl Encodable for OffsetFetchRequest {
                 types::Array(types::Struct { version }).encode(buf, &self.topics)?;
             }
         } else {
-            if !self.topics.as_ref().map(|x| x.is_empty()).unwrap_or_default() {
-                return Err(EncodeError)
+            if !self
+                .topics
+                .as_ref()
+                .map(|x| x.is_empty())
+                .unwrap_or_default()
+            {
+                return Err(EncodeError);
             }
         }
         if version >= 8 {
             types::CompactArray(types::Struct { version }).encode(buf, &self.groups)?;
         } else {
             if !self.groups.is_empty() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 7 {
             types::Boolean.encode(buf, &self.require_stable)?;
         } else {
             if self.require_stable {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 6 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -528,38 +568,48 @@ impl Encodable for OffsetFetchRequest {
             }
         } else {
             if !self.group_id.is_empty() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version <= 7 {
             if version >= 6 {
-                total_size += types::CompactArray(types::Struct { version }).compute_size(&self.topics)?;
+                total_size +=
+                    types::CompactArray(types::Struct { version }).compute_size(&self.topics)?;
             } else {
                 total_size += types::Array(types::Struct { version }).compute_size(&self.topics)?;
             }
         } else {
-            if !self.topics.as_ref().map(|x| x.is_empty()).unwrap_or_default() {
-                return Err(EncodeError)
+            if !self
+                .topics
+                .as_ref()
+                .map(|x| x.is_empty())
+                .unwrap_or_default()
+            {
+                return Err(EncodeError);
             }
         }
         if version >= 8 {
-            total_size += types::CompactArray(types::Struct { version }).compute_size(&self.groups)?;
+            total_size +=
+                types::CompactArray(types::Struct { version }).compute_size(&self.groups)?;
         } else {
             if !self.groups.is_empty() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 7 {
             total_size += types::Boolean.compute_size(&self.require_stable)?;
         } else {
             if self.require_stable {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 6 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -646,4 +696,3 @@ impl HeaderVersion for OffsetFetchRequest {
         }
     }
 }
-

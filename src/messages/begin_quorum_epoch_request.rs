@@ -12,10 +12,11 @@ use log::error;
 use uuid::Uuid;
 
 use crate::protocol::{
-    Encodable, Decodable, MapEncodable, MapDecodable, Encoder, Decoder, EncodeError, DecodeError, Message, HeaderVersion, VersionRange,
-    types, write_unknown_tagged_fields, compute_unknown_tagged_fields_size, StrBytes, buf::{ByteBuf, ByteBufMut}, Builder
+    buf::{ByteBuf, ByteBufMut},
+    compute_unknown_tagged_fields_size, types, write_unknown_tagged_fields, Builder, Decodable,
+    DecodeError, Decoder, Encodable, EncodeError, Encoder, HeaderVersion, MapDecodable,
+    MapEncodable, Message, StrBytes, VersionRange,
 };
-
 
 /// Valid versions: 0
 #[non_exhaustive]
@@ -23,26 +24,25 @@ use crate::protocol::{
 #[builder(default)]
 pub struct PartitionData {
     /// The partition index.
-    /// 
+    ///
     /// Supported API versions: 0
     pub partition_index: i32,
 
     /// The ID of the newly elected leader
-    /// 
+    ///
     /// Supported API versions: 0
     pub leader_id: super::BrokerId,
 
     /// The epoch of the newly elected leader
-    /// 
+    ///
     /// Supported API versions: 0
     pub leader_epoch: i32,
-
 }
 
 impl Builder for PartitionData {
     type Builder = PartitionDataBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         PartitionDataBuilder::default()
     }
 }
@@ -98,21 +98,20 @@ impl Message for PartitionData {
 #[builder(default)]
 pub struct TopicData {
     /// The topic name.
-    /// 
+    ///
     /// Supported API versions: 0
     pub topic_name: super::TopicName,
 
-    /// 
-    /// 
+    ///
+    ///
     /// Supported API versions: 0
     pub partitions: Vec<PartitionData>,
-
 }
 
 impl Builder for TopicData {
     type Builder = TopicDataBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         TopicDataBuilder::default()
     }
 }
@@ -162,22 +161,21 @@ impl Message for TopicData {
 #[derive(Debug, Clone, PartialEq, derive_builder::Builder)]
 #[builder(default)]
 pub struct BeginQuorumEpochRequest {
-    /// 
-    /// 
+    ///
+    ///
     /// Supported API versions: 0
     pub cluster_id: Option<StrBytes>,
 
-    /// 
-    /// 
+    ///
+    ///
     /// Supported API versions: 0
     pub topics: Vec<TopicData>,
-
 }
 
 impl Builder for BeginQuorumEpochRequest {
     type Builder = BeginQuorumEpochRequestBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         BeginQuorumEpochRequestBuilder::default()
     }
 }
@@ -202,10 +200,7 @@ impl Decodable for BeginQuorumEpochRequest {
     fn decode<B: ByteBuf>(buf: &mut B, version: i16) -> Result<Self, DecodeError> {
         let cluster_id = types::String.decode(buf)?;
         let topics = types::Array(types::Struct { version }).decode(buf)?;
-        Ok(Self {
-            cluster_id,
-            topics,
-        })
+        Ok(Self { cluster_id, topics })
     }
 }
 
@@ -227,4 +222,3 @@ impl HeaderVersion for BeginQuorumEpochRequest {
         1
     }
 }
-

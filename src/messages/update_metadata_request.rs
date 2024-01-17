@@ -12,10 +12,11 @@ use log::error;
 use uuid::Uuid;
 
 use crate::protocol::{
-    Encodable, Decodable, MapEncodable, MapDecodable, Encoder, Decoder, EncodeError, DecodeError, Message, HeaderVersion, VersionRange,
-    types, write_unknown_tagged_fields, compute_unknown_tagged_fields_size, StrBytes, buf::{ByteBuf, ByteBufMut}, Builder
+    buf::{ByteBuf, ByteBufMut},
+    compute_unknown_tagged_fields_size, types, write_unknown_tagged_fields, Builder, Decodable,
+    DecodeError, Decoder, Encodable, EncodeError, Encoder, HeaderVersion, MapDecodable,
+    MapEncodable, Message, StrBytes, VersionRange,
 };
-
 
 /// Valid versions: 0-7
 #[non_exhaustive]
@@ -23,47 +24,47 @@ use crate::protocol::{
 #[builder(default)]
 pub struct UpdateMetadataPartitionState {
     /// In older versions of this RPC, the topic name.
-    /// 
+    ///
     /// Supported API versions: 0-4
     pub topic_name: super::TopicName,
 
     /// The partition index.
-    /// 
+    ///
     /// Supported API versions: 0-7
     pub partition_index: i32,
 
     /// The controller epoch.
-    /// 
+    ///
     /// Supported API versions: 0-7
     pub controller_epoch: i32,
 
     /// The ID of the broker which is the current partition leader.
-    /// 
+    ///
     /// Supported API versions: 0-7
     pub leader: super::BrokerId,
 
     /// The leader epoch of this partition.
-    /// 
+    ///
     /// Supported API versions: 0-7
     pub leader_epoch: i32,
 
     /// The brokers which are in the ISR for this partition.
-    /// 
+    ///
     /// Supported API versions: 0-7
     pub isr: Vec<super::BrokerId>,
 
     /// The Zookeeper version.
-    /// 
+    ///
     /// Supported API versions: 0-7
     pub zk_version: i32,
 
     /// All the replicas of this partition.
-    /// 
+    ///
     /// Supported API versions: 0-7
     pub replicas: Vec<super::BrokerId>,
 
     /// The replicas of this partition which are offline.
-    /// 
+    ///
     /// Supported API versions: 4-7
     pub offline_replicas: Vec<super::BrokerId>,
 
@@ -74,7 +75,7 @@ pub struct UpdateMetadataPartitionState {
 impl Builder for UpdateMetadataPartitionState {
     type Builder = UpdateMetadataPartitionStateBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         UpdateMetadataPartitionStateBuilder::default()
     }
 }
@@ -109,7 +110,10 @@ impl Encodable for UpdateMetadataPartitionState {
         if version >= 6 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -140,7 +144,8 @@ impl Encodable for UpdateMetadataPartitionState {
         }
         if version >= 4 {
             if version >= 6 {
-                total_size += types::CompactArray(types::Int32).compute_size(&self.offline_replicas)?;
+                total_size +=
+                    types::CompactArray(types::Int32).compute_size(&self.offline_replicas)?;
             } else {
                 total_size += types::Array(types::Int32).compute_size(&self.offline_replicas)?;
             }
@@ -148,7 +153,10 @@ impl Encodable for UpdateMetadataPartitionState {
         if version >= 6 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -243,17 +251,17 @@ impl Message for UpdateMetadataPartitionState {
 #[builder(default)]
 pub struct UpdateMetadataTopicState {
     /// The topic name.
-    /// 
+    ///
     /// Supported API versions: 5-7
     pub topic_name: super::TopicName,
 
     /// The topic id.
-    /// 
+    ///
     /// Supported API versions: 7
     pub topic_id: Uuid,
 
     /// The partition that we would like to update.
-    /// 
+    ///
     /// Supported API versions: 5-7
     pub partition_states: Vec<UpdateMetadataPartitionState>,
 
@@ -264,7 +272,7 @@ pub struct UpdateMetadataTopicState {
 impl Builder for UpdateMetadataTopicState {
     type Builder = UpdateMetadataTopicStateBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         UpdateMetadataTopicStateBuilder::default()
     }
 }
@@ -279,7 +287,7 @@ impl Encodable for UpdateMetadataTopicState {
             }
         } else {
             if !self.topic_name.is_empty() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 7 {
@@ -287,19 +295,23 @@ impl Encodable for UpdateMetadataTopicState {
         }
         if version >= 5 {
             if version >= 6 {
-                types::CompactArray(types::Struct { version }).encode(buf, &self.partition_states)?;
+                types::CompactArray(types::Struct { version })
+                    .encode(buf, &self.partition_states)?;
             } else {
                 types::Array(types::Struct { version }).encode(buf, &self.partition_states)?;
             }
         } else {
             if !self.partition_states.is_empty() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 6 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -318,7 +330,7 @@ impl Encodable for UpdateMetadataTopicState {
             }
         } else {
             if !self.topic_name.is_empty() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 7 {
@@ -326,19 +338,24 @@ impl Encodable for UpdateMetadataTopicState {
         }
         if version >= 5 {
             if version >= 6 {
-                total_size += types::CompactArray(types::Struct { version }).compute_size(&self.partition_states)?;
+                total_size += types::CompactArray(types::Struct { version })
+                    .compute_size(&self.partition_states)?;
             } else {
-                total_size += types::Array(types::Struct { version }).compute_size(&self.partition_states)?;
+                total_size +=
+                    types::Array(types::Struct { version }).compute_size(&self.partition_states)?;
             }
         } else {
             if !self.partition_states.is_empty() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 6 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -415,22 +432,22 @@ impl Message for UpdateMetadataTopicState {
 #[builder(default)]
 pub struct UpdateMetadataEndpoint {
     /// The port of this endpoint
-    /// 
+    ///
     /// Supported API versions: 1-7
     pub port: i32,
 
     /// The hostname of this endpoint
-    /// 
+    ///
     /// Supported API versions: 1-7
     pub host: StrBytes,
 
     /// The listener name.
-    /// 
+    ///
     /// Supported API versions: 3-7
     pub listener: StrBytes,
 
     /// The security protocol type.
-    /// 
+    ///
     /// Supported API versions: 1-7
     pub security_protocol: i16,
 
@@ -441,7 +458,7 @@ pub struct UpdateMetadataEndpoint {
 impl Builder for UpdateMetadataEndpoint {
     type Builder = UpdateMetadataEndpointBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         UpdateMetadataEndpointBuilder::default()
     }
 }
@@ -452,7 +469,7 @@ impl Encodable for UpdateMetadataEndpoint {
             types::Int32.encode(buf, &self.port)?;
         } else {
             if self.port != 0 {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 1 {
@@ -463,7 +480,7 @@ impl Encodable for UpdateMetadataEndpoint {
             }
         } else {
             if !self.host.is_empty() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 3 {
@@ -477,13 +494,16 @@ impl Encodable for UpdateMetadataEndpoint {
             types::Int16.encode(buf, &self.security_protocol)?;
         } else {
             if self.security_protocol != 0 {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 6 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -498,7 +518,7 @@ impl Encodable for UpdateMetadataEndpoint {
             total_size += types::Int32.compute_size(&self.port)?;
         } else {
             if self.port != 0 {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 1 {
@@ -509,7 +529,7 @@ impl Encodable for UpdateMetadataEndpoint {
             }
         } else {
             if !self.host.is_empty() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 3 {
@@ -523,13 +543,16 @@ impl Encodable for UpdateMetadataEndpoint {
             total_size += types::Int16.compute_size(&self.security_protocol)?;
         } else {
             if self.security_protocol != 0 {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 6 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -613,27 +636,27 @@ impl Message for UpdateMetadataEndpoint {
 #[builder(default)]
 pub struct UpdateMetadataBroker {
     /// The broker id.
-    /// 
+    ///
     /// Supported API versions: 0-7
     pub id: super::BrokerId,
 
     /// The broker hostname.
-    /// 
+    ///
     /// Supported API versions: 0
     pub v0_host: StrBytes,
 
     /// The broker port.
-    /// 
+    ///
     /// Supported API versions: 0
     pub v0_port: i32,
 
     /// The broker endpoints.
-    /// 
+    ///
     /// Supported API versions: 1-7
     pub endpoints: Vec<UpdateMetadataEndpoint>,
 
     /// The rack which this broker belongs to.
-    /// 
+    ///
     /// Supported API versions: 2-7
     pub rack: Option<StrBytes>,
 
@@ -644,7 +667,7 @@ pub struct UpdateMetadataBroker {
 impl Builder for UpdateMetadataBroker {
     type Builder = UpdateMetadataBrokerBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         UpdateMetadataBrokerBuilder::default()
     }
 }
@@ -675,7 +698,10 @@ impl Encodable for UpdateMetadataBroker {
         if version >= 6 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -695,9 +721,11 @@ impl Encodable for UpdateMetadataBroker {
         }
         if version >= 1 {
             if version >= 6 {
-                total_size += types::CompactArray(types::Struct { version }).compute_size(&self.endpoints)?;
+                total_size +=
+                    types::CompactArray(types::Struct { version }).compute_size(&self.endpoints)?;
             } else {
-                total_size += types::Array(types::Struct { version }).compute_size(&self.endpoints)?;
+                total_size +=
+                    types::Array(types::Struct { version }).compute_size(&self.endpoints)?;
             }
         }
         if version >= 2 {
@@ -710,7 +738,10 @@ impl Encodable for UpdateMetadataBroker {
         if version >= 6 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -797,32 +828,32 @@ impl Message for UpdateMetadataBroker {
 #[builder(default)]
 pub struct UpdateMetadataRequest {
     /// The controller id.
-    /// 
+    ///
     /// Supported API versions: 0-7
     pub controller_id: super::BrokerId,
 
     /// The controller epoch.
-    /// 
+    ///
     /// Supported API versions: 0-7
     pub controller_epoch: i32,
 
     /// The broker epoch.
-    /// 
+    ///
     /// Supported API versions: 5-7
     pub broker_epoch: i64,
 
     /// In older versions of this RPC, each partition that we would like to update.
-    /// 
+    ///
     /// Supported API versions: 0-4
     pub ungrouped_partition_states: Vec<UpdateMetadataPartitionState>,
 
     /// In newer versions of this RPC, each topic that we would like to update.
-    /// 
+    ///
     /// Supported API versions: 5-7
     pub topic_states: Vec<UpdateMetadataTopicState>,
 
-    /// 
-    /// 
+    ///
+    ///
     /// Supported API versions: 0-7
     pub live_brokers: Vec<UpdateMetadataBroker>,
 
@@ -833,7 +864,7 @@ pub struct UpdateMetadataRequest {
 impl Builder for UpdateMetadataRequest {
     type Builder = UpdateMetadataRequestBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         UpdateMetadataRequestBuilder::default()
     }
 }
@@ -846,10 +877,11 @@ impl Encodable for UpdateMetadataRequest {
             types::Int64.encode(buf, &self.broker_epoch)?;
         }
         if version <= 4 {
-            types::Array(types::Struct { version }).encode(buf, &self.ungrouped_partition_states)?;
+            types::Array(types::Struct { version })
+                .encode(buf, &self.ungrouped_partition_states)?;
         } else {
             if !self.ungrouped_partition_states.is_empty() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 5 {
@@ -860,7 +892,7 @@ impl Encodable for UpdateMetadataRequest {
             }
         } else {
             if !self.topic_states.is_empty() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 6 {
@@ -871,7 +903,10 @@ impl Encodable for UpdateMetadataRequest {
         if version >= 6 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -888,32 +923,40 @@ impl Encodable for UpdateMetadataRequest {
             total_size += types::Int64.compute_size(&self.broker_epoch)?;
         }
         if version <= 4 {
-            total_size += types::Array(types::Struct { version }).compute_size(&self.ungrouped_partition_states)?;
+            total_size += types::Array(types::Struct { version })
+                .compute_size(&self.ungrouped_partition_states)?;
         } else {
             if !self.ungrouped_partition_states.is_empty() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 5 {
             if version >= 6 {
-                total_size += types::CompactArray(types::Struct { version }).compute_size(&self.topic_states)?;
+                total_size += types::CompactArray(types::Struct { version })
+                    .compute_size(&self.topic_states)?;
             } else {
-                total_size += types::Array(types::Struct { version }).compute_size(&self.topic_states)?;
+                total_size +=
+                    types::Array(types::Struct { version }).compute_size(&self.topic_states)?;
             }
         } else {
             if !self.topic_states.is_empty() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 6 {
-            total_size += types::CompactArray(types::Struct { version }).compute_size(&self.live_brokers)?;
+            total_size +=
+                types::CompactArray(types::Struct { version }).compute_size(&self.live_brokers)?;
         } else {
-            total_size += types::Array(types::Struct { version }).compute_size(&self.live_brokers)?;
+            total_size +=
+                types::Array(types::Struct { version }).compute_size(&self.live_brokers)?;
         }
         if version >= 6 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -1002,4 +1045,3 @@ impl HeaderVersion for UpdateMetadataRequest {
         }
     }
 }
-

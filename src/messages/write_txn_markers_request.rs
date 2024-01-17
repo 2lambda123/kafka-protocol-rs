@@ -12,10 +12,11 @@ use log::error;
 use uuid::Uuid;
 
 use crate::protocol::{
-    Encodable, Decodable, MapEncodable, MapDecodable, Encoder, Decoder, EncodeError, DecodeError, Message, HeaderVersion, VersionRange,
-    types, write_unknown_tagged_fields, compute_unknown_tagged_fields_size, StrBytes, buf::{ByteBuf, ByteBufMut}, Builder
+    buf::{ByteBuf, ByteBufMut},
+    compute_unknown_tagged_fields_size, types, write_unknown_tagged_fields, Builder, Decodable,
+    DecodeError, Decoder, Encodable, EncodeError, Encoder, HeaderVersion, MapDecodable,
+    MapEncodable, Message, StrBytes, VersionRange,
 };
-
 
 /// Valid versions: 0-1
 #[non_exhaustive]
@@ -23,12 +24,12 @@ use crate::protocol::{
 #[builder(default)]
 pub struct WritableTxnMarkerTopic {
     /// The topic name.
-    /// 
+    ///
     /// Supported API versions: 0-1
     pub name: super::TopicName,
 
     /// The indexes of the partitions to write transaction markers for.
-    /// 
+    ///
     /// Supported API versions: 0-1
     pub partition_indexes: Vec<i32>,
 
@@ -39,7 +40,7 @@ pub struct WritableTxnMarkerTopic {
 impl Builder for WritableTxnMarkerTopic {
     type Builder = WritableTxnMarkerTopicBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         WritableTxnMarkerTopicBuilder::default()
     }
 }
@@ -59,7 +60,10 @@ impl Encodable for WritableTxnMarkerTopic {
         if version >= 1 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -76,14 +80,18 @@ impl Encodable for WritableTxnMarkerTopic {
             total_size += types::String.compute_size(&self.name)?;
         }
         if version >= 1 {
-            total_size += types::CompactArray(types::Int32).compute_size(&self.partition_indexes)?;
+            total_size +=
+                types::CompactArray(types::Int32).compute_size(&self.partition_indexes)?;
         } else {
             total_size += types::Array(types::Int32).compute_size(&self.partition_indexes)?;
         }
         if version >= 1 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -145,27 +153,27 @@ impl Message for WritableTxnMarkerTopic {
 #[builder(default)]
 pub struct WritableTxnMarker {
     /// The current producer ID.
-    /// 
+    ///
     /// Supported API versions: 0-1
     pub producer_id: super::ProducerId,
 
     /// The current epoch associated with the producer ID.
-    /// 
+    ///
     /// Supported API versions: 0-1
     pub producer_epoch: i16,
 
     /// The result of the transaction to write to the partitions (false = ABORT, true = COMMIT).
-    /// 
+    ///
     /// Supported API versions: 0-1
     pub transaction_result: bool,
 
     /// Each topic that we want to write transaction marker(s) for.
-    /// 
+    ///
     /// Supported API versions: 0-1
     pub topics: Vec<WritableTxnMarkerTopic>,
 
     /// Epoch associated with the transaction state partition hosted by this transaction coordinator
-    /// 
+    ///
     /// Supported API versions: 0-1
     pub coordinator_epoch: i32,
 
@@ -176,7 +184,7 @@ pub struct WritableTxnMarker {
 impl Builder for WritableTxnMarker {
     type Builder = WritableTxnMarkerBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         WritableTxnMarkerBuilder::default()
     }
 }
@@ -195,7 +203,10 @@ impl Encodable for WritableTxnMarker {
         if version >= 1 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -210,7 +221,8 @@ impl Encodable for WritableTxnMarker {
         total_size += types::Int16.compute_size(&self.producer_epoch)?;
         total_size += types::Boolean.compute_size(&self.transaction_result)?;
         if version >= 1 {
-            total_size += types::CompactArray(types::Struct { version }).compute_size(&self.topics)?;
+            total_size +=
+                types::CompactArray(types::Struct { version }).compute_size(&self.topics)?;
         } else {
             total_size += types::Array(types::Struct { version }).compute_size(&self.topics)?;
         }
@@ -218,7 +230,10 @@ impl Encodable for WritableTxnMarker {
         if version >= 1 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -285,7 +300,7 @@ impl Message for WritableTxnMarker {
 #[builder(default)]
 pub struct WriteTxnMarkersRequest {
     /// The transaction markers to be written.
-    /// 
+    ///
     /// Supported API versions: 0-1
     pub markers: Vec<WritableTxnMarker>,
 
@@ -296,7 +311,7 @@ pub struct WriteTxnMarkersRequest {
 impl Builder for WriteTxnMarkersRequest {
     type Builder = WriteTxnMarkersRequestBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         WriteTxnMarkersRequestBuilder::default()
     }
 }
@@ -311,7 +326,10 @@ impl Encodable for WriteTxnMarkersRequest {
         if version >= 1 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -323,14 +341,18 @@ impl Encodable for WriteTxnMarkersRequest {
     fn compute_size(&self, version: i16) -> Result<usize, EncodeError> {
         let mut total_size = 0;
         if version >= 1 {
-            total_size += types::CompactArray(types::Struct { version }).compute_size(&self.markers)?;
+            total_size +=
+                types::CompactArray(types::Struct { version }).compute_size(&self.markers)?;
         } else {
             total_size += types::Array(types::Struct { version }).compute_size(&self.markers)?;
         }
         if version >= 1 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -388,4 +410,3 @@ impl HeaderVersion for WriteTxnMarkersRequest {
         }
     }
 }
-

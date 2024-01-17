@@ -12,10 +12,11 @@ use log::error;
 use uuid::Uuid;
 
 use crate::protocol::{
-    Encodable, Decodable, MapEncodable, MapDecodable, Encoder, Decoder, EncodeError, DecodeError, Message, HeaderVersion, VersionRange,
-    types, write_unknown_tagged_fields, compute_unknown_tagged_fields_size, StrBytes, buf::{ByteBuf, ByteBufMut}, Builder
+    buf::{ByteBuf, ByteBufMut},
+    compute_unknown_tagged_fields_size, types, write_unknown_tagged_fields, Builder, Decodable,
+    DecodeError, Decoder, Encodable, EncodeError, Encoder, HeaderVersion, MapDecodable,
+    MapEncodable, Message, StrBytes, VersionRange,
 };
-
 
 /// Valid versions: 0-3
 #[non_exhaustive]
@@ -23,12 +24,12 @@ use crate::protocol::{
 #[builder(default)]
 pub struct CreatableRenewers {
     /// The type of the Kafka principal.
-    /// 
+    ///
     /// Supported API versions: 0-3
     pub principal_type: StrBytes,
 
     /// The name of the Kafka principal.
-    /// 
+    ///
     /// Supported API versions: 0-3
     pub principal_name: StrBytes,
 
@@ -39,7 +40,7 @@ pub struct CreatableRenewers {
 impl Builder for CreatableRenewers {
     type Builder = CreatableRenewersBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         CreatableRenewersBuilder::default()
     }
 }
@@ -59,7 +60,10 @@ impl Encodable for CreatableRenewers {
         if version >= 2 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -83,7 +87,10 @@ impl Encodable for CreatableRenewers {
         if version >= 2 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -145,22 +152,22 @@ impl Message for CreatableRenewers {
 #[builder(default)]
 pub struct CreateDelegationTokenRequest {
     /// The principal type of the owner of the token. If it's null it defaults to the token request principal.
-    /// 
+    ///
     /// Supported API versions: 3
     pub owner_principal_type: Option<StrBytes>,
 
     /// The principal name of the owner of the token. If it's null it defaults to the token request principal.
-    /// 
+    ///
     /// Supported API versions: 3
     pub owner_principal_name: Option<StrBytes>,
 
     /// A list of those who are allowed to renew this token before it expires.
-    /// 
+    ///
     /// Supported API versions: 0-3
     pub renewers: Vec<CreatableRenewers>,
 
     /// The maximum lifetime of the token in milliseconds, or -1 to use the server side default.
-    /// 
+    ///
     /// Supported API versions: 0-3
     pub max_lifetime_ms: i64,
 
@@ -171,7 +178,7 @@ pub struct CreateDelegationTokenRequest {
 impl Builder for CreateDelegationTokenRequest {
     type Builder = CreateDelegationTokenRequestBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         CreateDelegationTokenRequestBuilder::default()
     }
 }
@@ -181,15 +188,25 @@ impl Encodable for CreateDelegationTokenRequest {
         if version >= 3 {
             types::CompactString.encode(buf, &self.owner_principal_type)?;
         } else {
-            if !self.owner_principal_type.as_ref().map(|x| x.is_empty()).unwrap_or_default() {
-                return Err(EncodeError)
+            if !self
+                .owner_principal_type
+                .as_ref()
+                .map(|x| x.is_empty())
+                .unwrap_or_default()
+            {
+                return Err(EncodeError);
             }
         }
         if version >= 3 {
             types::CompactString.encode(buf, &self.owner_principal_name)?;
         } else {
-            if !self.owner_principal_name.as_ref().map(|x| x.is_empty()).unwrap_or_default() {
-                return Err(EncodeError)
+            if !self
+                .owner_principal_name
+                .as_ref()
+                .map(|x| x.is_empty())
+                .unwrap_or_default()
+            {
+                return Err(EncodeError);
             }
         }
         if version >= 2 {
@@ -201,7 +218,10 @@ impl Encodable for CreateDelegationTokenRequest {
         if version >= 2 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -215,19 +235,30 @@ impl Encodable for CreateDelegationTokenRequest {
         if version >= 3 {
             total_size += types::CompactString.compute_size(&self.owner_principal_type)?;
         } else {
-            if !self.owner_principal_type.as_ref().map(|x| x.is_empty()).unwrap_or_default() {
-                return Err(EncodeError)
+            if !self
+                .owner_principal_type
+                .as_ref()
+                .map(|x| x.is_empty())
+                .unwrap_or_default()
+            {
+                return Err(EncodeError);
             }
         }
         if version >= 3 {
             total_size += types::CompactString.compute_size(&self.owner_principal_name)?;
         } else {
-            if !self.owner_principal_name.as_ref().map(|x| x.is_empty()).unwrap_or_default() {
-                return Err(EncodeError)
+            if !self
+                .owner_principal_name
+                .as_ref()
+                .map(|x| x.is_empty())
+                .unwrap_or_default()
+            {
+                return Err(EncodeError);
             }
         }
         if version >= 2 {
-            total_size += types::CompactArray(types::Struct { version }).compute_size(&self.renewers)?;
+            total_size +=
+                types::CompactArray(types::Struct { version }).compute_size(&self.renewers)?;
         } else {
             total_size += types::Array(types::Struct { version }).compute_size(&self.renewers)?;
         }
@@ -235,7 +266,10 @@ impl Encodable for CreateDelegationTokenRequest {
         if version >= 2 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -310,4 +344,3 @@ impl HeaderVersion for CreateDelegationTokenRequest {
         }
     }
 }
-

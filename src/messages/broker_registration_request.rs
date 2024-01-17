@@ -12,10 +12,11 @@ use log::error;
 use uuid::Uuid;
 
 use crate::protocol::{
-    Encodable, Decodable, MapEncodable, MapDecodable, Encoder, Decoder, EncodeError, DecodeError, Message, HeaderVersion, VersionRange,
-    types, write_unknown_tagged_fields, compute_unknown_tagged_fields_size, StrBytes, buf::{ByteBuf, ByteBufMut}, Builder
+    buf::{ByteBuf, ByteBufMut},
+    compute_unknown_tagged_fields_size, types, write_unknown_tagged_fields, Builder, Decodable,
+    DecodeError, Decoder, Encodable, EncodeError, Encoder, HeaderVersion, MapDecodable,
+    MapEncodable, Message, StrBytes, VersionRange,
 };
-
 
 /// Valid versions: 0
 #[non_exhaustive]
@@ -23,17 +24,17 @@ use crate::protocol::{
 #[builder(default)]
 pub struct Listener {
     /// The hostname.
-    /// 
+    ///
     /// Supported API versions: 0
     pub host: StrBytes,
 
     /// The port.
-    /// 
+    ///
     /// Supported API versions: 0
     pub port: u16,
 
     /// The security protocol.
-    /// 
+    ///
     /// Supported API versions: 0
     pub security_protocol: i16,
 
@@ -44,21 +45,29 @@ pub struct Listener {
 impl Builder for Listener {
     type Builder = ListenerBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         ListenerBuilder::default()
     }
 }
 
 impl MapEncodable for Listener {
     type Key = StrBytes;
-    fn encode<B: ByteBufMut>(&self, key: &Self::Key, buf: &mut B, version: i16) -> Result<(), EncodeError> {
+    fn encode<B: ByteBufMut>(
+        &self,
+        key: &Self::Key,
+        buf: &mut B,
+        version: i16,
+    ) -> Result<(), EncodeError> {
         types::CompactString.encode(buf, key)?;
         types::CompactString.encode(buf, &self.host)?;
         types::UInt16.encode(buf, &self.port)?;
         types::Int16.encode(buf, &self.security_protocol)?;
         let num_tagged_fields = self.unknown_tagged_fields.len();
         if num_tagged_fields > std::u32::MAX as usize {
-            error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+            error!(
+                "Too many tagged fields to encode ({} fields)",
+                num_tagged_fields
+            );
             return Err(EncodeError);
         }
         types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -74,7 +83,10 @@ impl MapEncodable for Listener {
         total_size += types::Int16.compute_size(&self.security_protocol)?;
         let num_tagged_fields = self.unknown_tagged_fields.len();
         if num_tagged_fields > std::u32::MAX as usize {
-            error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+            error!(
+                "Too many tagged fields to encode ({} fields)",
+                num_tagged_fields
+            );
             return Err(EncodeError);
         }
         total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -100,12 +112,15 @@ impl MapDecodable for Listener {
             buf.try_copy_to_slice(&mut unknown_value)?;
             unknown_tagged_fields.insert(tag as i32, unknown_value);
         }
-        Ok((key_field, Self {
-            host,
-            port,
-            security_protocol,
-            unknown_tagged_fields,
-        }))
+        Ok((
+            key_field,
+            Self {
+                host,
+                port,
+                security_protocol,
+                unknown_tagged_fields,
+            },
+        ))
     }
 }
 
@@ -130,12 +145,12 @@ impl Message for Listener {
 #[builder(default)]
 pub struct Feature {
     /// The minimum supported feature level.
-    /// 
+    ///
     /// Supported API versions: 0
     pub min_supported_version: i16,
 
     /// The maximum supported feature level.
-    /// 
+    ///
     /// Supported API versions: 0
     pub max_supported_version: i16,
 
@@ -146,20 +161,28 @@ pub struct Feature {
 impl Builder for Feature {
     type Builder = FeatureBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         FeatureBuilder::default()
     }
 }
 
 impl MapEncodable for Feature {
     type Key = StrBytes;
-    fn encode<B: ByteBufMut>(&self, key: &Self::Key, buf: &mut B, version: i16) -> Result<(), EncodeError> {
+    fn encode<B: ByteBufMut>(
+        &self,
+        key: &Self::Key,
+        buf: &mut B,
+        version: i16,
+    ) -> Result<(), EncodeError> {
         types::CompactString.encode(buf, key)?;
         types::Int16.encode(buf, &self.min_supported_version)?;
         types::Int16.encode(buf, &self.max_supported_version)?;
         let num_tagged_fields = self.unknown_tagged_fields.len();
         if num_tagged_fields > std::u32::MAX as usize {
-            error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+            error!(
+                "Too many tagged fields to encode ({} fields)",
+                num_tagged_fields
+            );
             return Err(EncodeError);
         }
         types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -174,7 +197,10 @@ impl MapEncodable for Feature {
         total_size += types::Int16.compute_size(&self.max_supported_version)?;
         let num_tagged_fields = self.unknown_tagged_fields.len();
         if num_tagged_fields > std::u32::MAX as usize {
-            error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+            error!(
+                "Too many tagged fields to encode ({} fields)",
+                num_tagged_fields
+            );
             return Err(EncodeError);
         }
         total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -199,11 +225,14 @@ impl MapDecodable for Feature {
             buf.try_copy_to_slice(&mut unknown_value)?;
             unknown_tagged_fields.insert(tag as i32, unknown_value);
         }
-        Ok((key_field, Self {
-            min_supported_version,
-            max_supported_version,
-            unknown_tagged_fields,
-        }))
+        Ok((
+            key_field,
+            Self {
+                min_supported_version,
+                max_supported_version,
+                unknown_tagged_fields,
+            },
+        ))
     }
 }
 
@@ -227,32 +256,32 @@ impl Message for Feature {
 #[builder(default)]
 pub struct BrokerRegistrationRequest {
     /// The broker ID.
-    /// 
+    ///
     /// Supported API versions: 0
     pub broker_id: super::BrokerId,
 
     /// The cluster id of the broker process.
-    /// 
+    ///
     /// Supported API versions: 0
     pub cluster_id: StrBytes,
 
     /// The incarnation id of the broker process.
-    /// 
+    ///
     /// Supported API versions: 0
     pub incarnation_id: Uuid,
 
     /// The listeners of this broker
-    /// 
+    ///
     /// Supported API versions: 0
     pub listeners: indexmap::IndexMap<StrBytes, Listener>,
 
     /// The features on this broker
-    /// 
+    ///
     /// Supported API versions: 0
     pub features: indexmap::IndexMap<StrBytes, Feature>,
 
     /// The rack which this broker is in.
-    /// 
+    ///
     /// Supported API versions: 0
     pub rack: Option<StrBytes>,
 
@@ -263,7 +292,7 @@ pub struct BrokerRegistrationRequest {
 impl Builder for BrokerRegistrationRequest {
     type Builder = BrokerRegistrationRequestBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         BrokerRegistrationRequestBuilder::default()
     }
 }
@@ -278,7 +307,10 @@ impl Encodable for BrokerRegistrationRequest {
         types::CompactString.encode(buf, &self.rack)?;
         let num_tagged_fields = self.unknown_tagged_fields.len();
         if num_tagged_fields > std::u32::MAX as usize {
-            error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+            error!(
+                "Too many tagged fields to encode ({} fields)",
+                num_tagged_fields
+            );
             return Err(EncodeError);
         }
         types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -291,12 +323,17 @@ impl Encodable for BrokerRegistrationRequest {
         total_size += types::Int32.compute_size(&self.broker_id)?;
         total_size += types::CompactString.compute_size(&self.cluster_id)?;
         total_size += types::Uuid.compute_size(&self.incarnation_id)?;
-        total_size += types::CompactArray(types::Struct { version }).compute_size(&self.listeners)?;
-        total_size += types::CompactArray(types::Struct { version }).compute_size(&self.features)?;
+        total_size +=
+            types::CompactArray(types::Struct { version }).compute_size(&self.listeners)?;
+        total_size +=
+            types::CompactArray(types::Struct { version }).compute_size(&self.features)?;
         total_size += types::CompactString.compute_size(&self.rack)?;
         let num_tagged_fields = self.unknown_tagged_fields.len();
         if num_tagged_fields > std::u32::MAX as usize {
-            error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+            error!(
+                "Too many tagged fields to encode ({} fields)",
+                num_tagged_fields
+            );
             return Err(EncodeError);
         }
         total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -358,4 +395,3 @@ impl HeaderVersion for BrokerRegistrationRequest {
         2
     }
 }
-

@@ -12,10 +12,11 @@ use log::error;
 use uuid::Uuid;
 
 use crate::protocol::{
-    Encodable, Decodable, MapEncodable, MapDecodable, Encoder, Decoder, EncodeError, DecodeError, Message, HeaderVersion, VersionRange,
-    types, write_unknown_tagged_fields, compute_unknown_tagged_fields_size, StrBytes, buf::{ByteBuf, ByteBufMut}, Builder
+    buf::{ByteBuf, ByteBufMut},
+    compute_unknown_tagged_fields_size, types, write_unknown_tagged_fields, Builder, Decodable,
+    DecodeError, Decoder, Encodable, EncodeError, Encoder, HeaderVersion, MapDecodable,
+    MapEncodable, Message, StrBytes, VersionRange,
 };
-
 
 /// Valid versions: 0-3
 #[non_exhaustive]
@@ -23,12 +24,12 @@ use crate::protocol::{
 #[builder(default)]
 pub struct DescribedDelegationTokenRenewer {
     /// The renewer principal type
-    /// 
+    ///
     /// Supported API versions: 0-3
     pub principal_type: StrBytes,
 
     /// The renewer principal name
-    /// 
+    ///
     /// Supported API versions: 0-3
     pub principal_name: StrBytes,
 
@@ -39,7 +40,7 @@ pub struct DescribedDelegationTokenRenewer {
 impl Builder for DescribedDelegationTokenRenewer {
     type Builder = DescribedDelegationTokenRenewerBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         DescribedDelegationTokenRenewerBuilder::default()
     }
 }
@@ -59,7 +60,10 @@ impl Encodable for DescribedDelegationTokenRenewer {
         if version >= 2 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -83,7 +87,10 @@ impl Encodable for DescribedDelegationTokenRenewer {
         if version >= 2 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -145,52 +152,52 @@ impl Message for DescribedDelegationTokenRenewer {
 #[builder(default)]
 pub struct DescribedDelegationToken {
     /// The token principal type.
-    /// 
+    ///
     /// Supported API versions: 0-3
     pub principal_type: StrBytes,
 
     /// The token principal name.
-    /// 
+    ///
     /// Supported API versions: 0-3
     pub principal_name: StrBytes,
 
     /// The principal type of the requester of the token.
-    /// 
+    ///
     /// Supported API versions: 3
     pub token_requester_principal_type: StrBytes,
 
     /// The principal type of the requester of the token.
-    /// 
+    ///
     /// Supported API versions: 3
     pub token_requester_principal_name: StrBytes,
 
     /// The token issue timestamp in milliseconds.
-    /// 
+    ///
     /// Supported API versions: 0-3
     pub issue_timestamp: i64,
 
     /// The token expiry timestamp in milliseconds.
-    /// 
+    ///
     /// Supported API versions: 0-3
     pub expiry_timestamp: i64,
 
     /// The token maximum timestamp length in milliseconds.
-    /// 
+    ///
     /// Supported API versions: 0-3
     pub max_timestamp: i64,
 
     /// The token ID.
-    /// 
+    ///
     /// Supported API versions: 0-3
     pub token_id: StrBytes,
 
     /// The token HMAC.
-    /// 
+    ///
     /// Supported API versions: 0-3
     pub hmac: Bytes,
 
     /// Those who are able to renew this token before it expires.
-    /// 
+    ///
     /// Supported API versions: 0-3
     pub renewers: Vec<DescribedDelegationTokenRenewer>,
 
@@ -201,7 +208,7 @@ pub struct DescribedDelegationToken {
 impl Builder for DescribedDelegationToken {
     type Builder = DescribedDelegationTokenBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         DescribedDelegationTokenBuilder::default()
     }
 }
@@ -222,14 +229,14 @@ impl Encodable for DescribedDelegationToken {
             types::CompactString.encode(buf, &self.token_requester_principal_type)?;
         } else {
             if !self.token_requester_principal_type.is_empty() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 3 {
             types::CompactString.encode(buf, &self.token_requester_principal_name)?;
         } else {
             if !self.token_requester_principal_name.is_empty() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         types::Int64.encode(buf, &self.issue_timestamp)?;
@@ -253,7 +260,10 @@ impl Encodable for DescribedDelegationToken {
         if version >= 2 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -275,17 +285,19 @@ impl Encodable for DescribedDelegationToken {
             total_size += types::String.compute_size(&self.principal_name)?;
         }
         if version >= 3 {
-            total_size += types::CompactString.compute_size(&self.token_requester_principal_type)?;
+            total_size +=
+                types::CompactString.compute_size(&self.token_requester_principal_type)?;
         } else {
             if !self.token_requester_principal_type.is_empty() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         if version >= 3 {
-            total_size += types::CompactString.compute_size(&self.token_requester_principal_name)?;
+            total_size +=
+                types::CompactString.compute_size(&self.token_requester_principal_name)?;
         } else {
             if !self.token_requester_principal_name.is_empty() {
-                return Err(EncodeError)
+                return Err(EncodeError);
             }
         }
         total_size += types::Int64.compute_size(&self.issue_timestamp)?;
@@ -302,14 +314,18 @@ impl Encodable for DescribedDelegationToken {
             total_size += types::Bytes.compute_size(&self.hmac)?;
         }
         if version >= 2 {
-            total_size += types::CompactArray(types::Struct { version }).compute_size(&self.renewers)?;
+            total_size +=
+                types::CompactArray(types::Struct { version }).compute_size(&self.renewers)?;
         } else {
             total_size += types::Array(types::Struct { version }).compute_size(&self.renewers)?;
         }
         if version >= 2 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -415,17 +431,17 @@ impl Message for DescribedDelegationToken {
 #[builder(default)]
 pub struct DescribeDelegationTokenResponse {
     /// The error code, or 0 if there was no error.
-    /// 
+    ///
     /// Supported API versions: 0-3
     pub error_code: i16,
 
     /// The tokens.
-    /// 
+    ///
     /// Supported API versions: 0-3
     pub tokens: Vec<DescribedDelegationToken>,
 
     /// The duration in milliseconds for which the request was throttled due to a quota violation, or zero if the request did not violate any quota.
-    /// 
+    ///
     /// Supported API versions: 0-3
     pub throttle_time_ms: i32,
 
@@ -436,7 +452,7 @@ pub struct DescribeDelegationTokenResponse {
 impl Builder for DescribeDelegationTokenResponse {
     type Builder = DescribeDelegationTokenResponseBuilder;
 
-    fn builder() -> Self::Builder{
+    fn builder() -> Self::Builder {
         DescribeDelegationTokenResponseBuilder::default()
     }
 }
@@ -453,7 +469,10 @@ impl Encodable for DescribeDelegationTokenResponse {
         if version >= 2 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             types::UnsignedVarInt.encode(buf, num_tagged_fields as u32)?;
@@ -466,7 +485,8 @@ impl Encodable for DescribeDelegationTokenResponse {
         let mut total_size = 0;
         total_size += types::Int16.compute_size(&self.error_code)?;
         if version >= 2 {
-            total_size += types::CompactArray(types::Struct { version }).compute_size(&self.tokens)?;
+            total_size +=
+                types::CompactArray(types::Struct { version }).compute_size(&self.tokens)?;
         } else {
             total_size += types::Array(types::Struct { version }).compute_size(&self.tokens)?;
         }
@@ -474,7 +494,10 @@ impl Encodable for DescribeDelegationTokenResponse {
         if version >= 2 {
             let num_tagged_fields = self.unknown_tagged_fields.len();
             if num_tagged_fields > std::u32::MAX as usize {
-                error!("Too many tagged fields to encode ({} fields)", num_tagged_fields);
+                error!(
+                    "Too many tagged fields to encode ({} fields)",
+                    num_tagged_fields
+                );
                 return Err(EncodeError);
             }
             total_size += types::UnsignedVarInt.compute_size(num_tagged_fields as u32)?;
@@ -538,4 +561,3 @@ impl HeaderVersion for DescribeDelegationTokenResponse {
         }
     }
 }
-
